@@ -1,5 +1,6 @@
 import { appleLoginPath } from '../shared/navigation';
 import { useState } from 'react';
+import { ProductPreview } from './ProductPreview';
 import {
   ArrowDown,
   ArrowUpRight,
@@ -315,21 +316,7 @@ export function LandingB({ config, error }: { config: LandingConfig | null; erro
                 <span>invoy.xyz</span>
                 <Cloud size={15} />
               </div>
-              <img
-                src={
-                  preview === 'invoice'
-                    ? '/product/invoice.jpg?v=20261002'
-                    : '/product/overview.jpg?v=20261002'
-                }
-                alt={
-                  preview === 'invoice'
-                    ? 'INVOY: zoznam faktúr a úprava faktúry priamo na papieri.'
-                    : 'INVOY: tabuľkový prehľad faktúr, odberateľov a stavov úhrady.'
-                }
-                width="1280"
-                height="720"
-                loading="lazy"
-              />
+              <ProductPreview preview={preview} />
             </div>
             <p className="lb-product-caption">Skutočné rozhranie INVOY. Ukážkové údaje.</p>
           </div>

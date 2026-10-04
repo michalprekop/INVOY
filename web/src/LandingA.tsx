@@ -1,5 +1,6 @@
 import { appleLoginPath } from '../shared/navigation';
 import { useState } from 'react';
+import { ProductPreview } from './ProductPreview';
 import { ArrowDown, ArrowRight, ArrowUpRight, Check, FileText, List, Monitor } from 'lucide-react';
 import { ErrorBox } from './ui';
 import './landing.css';
@@ -125,22 +126,7 @@ export function LandingA({ config, error }: { config: LandingConfig | null; erro
               <span>invoy.xyz</span>
               <span className="home-window-label">Váš pracovný priestor</span>
             </div>
-            <img
-              className="home-product-image"
-              src={
-                preview === 'invoice'
-                  ? '/product/invoice.jpg?v=20261002'
-                  : '/product/overview.jpg?v=20261002'
-              }
-              alt={
-                preview === 'invoice'
-                  ? 'INVOY: zoznam faktúr vľavo a úprava faktúry priamo na papieri vpravo.'
-                  : 'INVOY: tabuľkový prehľad faktúr, odberateľov, súm a stavov úhrady.'
-              }
-              width="1280"
-              height="720"
-              fetchPriority="high"
-            />
+            <ProductPreview preview={preview} className="home-product-image" eager />
           </div>
           <div className="home-preview-caption">
             <span>Skutočné rozhranie. Ukážkové údaje.</span>

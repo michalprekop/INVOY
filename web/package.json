@@ -10,9 +10,10 @@
     "test": "tsx --test tests/*.test.ts",
     "dev": "npm run build && wrangler dev",
     "preview": "npm run build && tsx scripts/preview.ts",
-    "deploy": "npm run build && wrangler deploy",
+    "deploy": "npm run capture:product && npm run build && wrangler deploy",
     "db:local": "wrangler d1 migrations apply DB --local",
-    "format:check": "prettier --check src shared server scripts tests public index.html vite.config.ts tsconfig.json wrangler.jsonc package.json .prettierrc.json"
+    "format:check": "prettier --check src shared server scripts tests public index.html vite.config.ts tsconfig.json wrangler.jsonc package.json .prettierrc.json",
+    "capture:product": "npm run build && tsx scripts/capture-product.ts"
   },
   "dependencies": {
     "bysquare": "^4.0.2",
@@ -35,7 +36,9 @@
     "@vitejs/plugin-react": "^6.1.1",
     "esbuild": "^0.28.2",
     "miniflare": "^4.20260730.0",
+    "playwright": "1.59.1",
     "prettier": "^3.9.9",
+    "sharp": "0.35.5",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vite": "^8.3.1",

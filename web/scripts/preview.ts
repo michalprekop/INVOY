@@ -4,9 +4,24 @@ import { createServer } from 'node:http';
 import { Readable } from 'node:stream';
 import { harness } from '../tests/harness';
 const landingPreview = process.argv.includes('--landing');
+const productPreview = process.argv.includes('--product');
 const previewPort = process.argv.find((arg) => arg.startsWith('--port='))?.split('=')[1];
-const origin = `http://127.0.0.1:${previewPort ?? (landingPreview ? '8792' : '8791')}`,
+const server = createServer();
+await new Promise<void>((resolve, reject) => {
+  server.once('error', reject);
+  server.listen(Number(previewPort ?? (landingPreview ? '8792' : '8791')), '127.0.0.1', resolve);
+});
+const address = server.address();
+if (!address || typeof address === 'string') throw new Error('Preview port unavailable');
+const origin = `http://127.0.0.1:${address.port}`,
   h = await harness(origin);
+if (productPreview) {
+  // Representative regular account, only in this isolated in-memory fixture.
+  await h.db
+    .prepare("UPDATE users SET role='user',name='Ukážkové štúdio' WHERE id=?")
+    .bind(h.identities.owner.id)
+    .run();
+}
 const previewTemplate = process.argv.find((arg) => arg.startsWith('--template='))?.split('=')[1];
 if (previewTemplate) {
   const template = await h.db
@@ -25,6 +40,10 @@ for (const [index, customer] of [
   'Ateliér Sever',
 ].entries()) {
   const invoice = await h.invoice('owner', `202600${index + 1}`);
+  if (productPreview) {
+    invoice.issueDate = '2026-10-04';
+    invoice.dueDate = '2026-10-18';
+  }
   if (previewTemplate) invoice.templateID = previewTemplate;
   invoice.customer.name = customer;
   Object.assign(invoice.customer, {
@@ -39,7 +58,7 @@ for (const [index, customer] of [
   invoice.paid = index === 1 ? '450' : '0';
   await h.request('owner', `/api/invoices/${invoice.id}`, 'PUT', invoice);
 }
-const server = createServer(async (req, res) => {
+server.on('request', async (req, res) => {
   if (req.headers.host !== new URL(origin).host) {
     res.writeHead(403);
     res.end();
@@ -95,11 +114,11 @@ const server = createServer(async (req, res) => {
     res.end('Preview request failed');
   }
 });
-server.listen(Number(new URL(origin).port), '127.0.0.1', () =>
-  console.log('Synthetic local preview: ' + origin + (landingPreview ? '/' : '/__preview/login')),
-);
-process.on('SIGINT', async () => {
+console.log('Synthetic local preview: ' + origin + (landingPreview ? '/' : '/__preview/login'));
+async function closePreview() {
   server.close();
   await h.mf.dispose();
   process.exit(0);
-});
+}
+process.on('SIGINT', closePreview);
+process.on('SIGTERM', closePreview);
