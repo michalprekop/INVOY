@@ -103,7 +103,7 @@ struct InvoiceEditor: View {
                     HStack(spacing: 8) { editorHeading }
                     HStack(spacing: 8) { Spacer(minLength: 0); editorActions }
                 }
-            }.padding(.horizontal, 16).padding(.vertical, 13)
+            }.padding(.horizontal, 16).padding(.vertical, 12)
             InvoyBrand.line.frame(height: 1).accessibilityHidden(true)
             InvoicePaperCanvas(draft: draft)
             if let message = draft.message {

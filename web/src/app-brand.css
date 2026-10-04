@@ -530,6 +530,7 @@
 /* Responsive workspace: controls wrap before the invoice loses usable space. */
 .original-editor-toolbar {
   flex-wrap: wrap;
+  padding-bottom: 12px;
   border-bottom: 1px solid var(--invoy-brand-line);
 }
 .original-editor-toolbar .toolbar-actions {
