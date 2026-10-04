@@ -206,6 +206,7 @@ struct InvoicesView: View {
     @State private var sortOrder = "Najnovšie"
     @AppStorage("invoiceTableMode") private var tableMode = false
     @State private var deleting: Invoice?
+    @State private var exporting = false
 
     private var filtered: [Invoice] {
         store.invoices.filter {
@@ -241,7 +242,9 @@ struct InvoicesView: View {
                     .frame(minWidth: 340, idealWidth: 475, maxWidth: 475)
                 VStack(alignment: .leading, spacing: 4) {
                     Text.numeric(Format.invoiceCount(store.invoices.count), size: 17, weight: .semibold)
-                    Text.numeric("\(store.invoices.filter { $0.status == "Po splatnosti" }.count) po splatnosti", size: 12).foregroundStyle(.secondary)
+                    Button { request { exporting = true } } label: {
+                        Text("Exportovať").underline().font(.system(size: 12)).foregroundStyle(.secondary)
+                    }.buttonStyle(.plain).disabled(store.invoices.isEmpty)
                 }.fixedSize()
                 HStack(spacing: 14) {
                     Spacer(minLength: 0)
@@ -279,6 +282,7 @@ struct InvoicesView: View {
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .newInvoice)) { _ in createInvoice() }
+        .sheet(isPresented: $exporting) { InvoiceExportSheet(initialYear: year).environmentObject(store) }
         .onChange(of: search) { _, _ in selectFilteredInvoice() }
         .onChange(of: filter) { _, _ in selectFilteredInvoice() }
         .onChange(of: year) { _, _ in selectFilteredInvoice() }

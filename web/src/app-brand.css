@@ -335,6 +335,33 @@
 .native-invoice-summary {
   flex-shrink: 0;
 }
+.native-invoice-summary .invoice-export-link {
+  display: block;
+  margin-top: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.native-invoice-summary .invoice-export-link:hover:not(:disabled) {
+  color: var(--invoy-brand-ink);
+}
+.invoice-export-dialog p {
+  white-space: normal;
+  color: var(--muted);
+  font-size: 13px;
+  margin: 16px 0;
+}
+.invoice-export-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
 .native-invoice-actions {
   display: flex;
   align-items: center;

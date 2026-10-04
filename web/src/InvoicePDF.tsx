@@ -221,16 +221,47 @@ export function renderInvoiceThumbnail(invoice: SavedInvoice): Promise<string> {
 
 /** Render the saved snapshot offscreen, with A4 pages and a footer on each page. */
 export async function renderInvoicePDF(invoice: SavedInvoice): Promise<Blob> {
-  return withInvoicePages(invoice, async (pages) => {
-    const pdf = new jsPDF({ unit: 'mm', format: 'a4', compress: true });
-    pdf.setProperties({ title: `Faktúra ${invoice.number}`, author: invoice.supplier.name });
-    for (const [index, page] of pages.entries()) {
-      const canvas = await capturePage(page, 2);
-      if (index) pdf.addPage();
-      pdf.addImage(canvas, 'PNG', 0, 0, 210, 297, undefined, 'FAST');
-      canvas.width = 0;
-      canvas.height = 0;
-    }
-    return pdf.output('blob');
+  return renderInvoicesPDF([invoice], {
+    title: `Faktúra ${invoice.number}`,
+    author: invoice.supplier.name,
   });
+}
+
+/** Reuse the single-invoice layout, appending every page to one document. */
+export async function renderInvoicesPDF(
+  invoices: Iterable<SavedInvoice> | AsyncIterable<SavedInvoice>,
+  options: {
+    title: string;
+    author?: string;
+    signal?: AbortSignal;
+    onProgress?: (count: number) => void;
+  },
+): Promise<Blob> {
+  const pdf = new jsPDF({ unit: 'mm', format: 'a4', compress: true });
+  pdf.setProperties({ title: options.title, author: options.author ?? 'INVOY' });
+  let pageCount = 0;
+  let count = 0;
+  for await (const invoice of invoices) {
+    options.signal?.throwIfAborted();
+    await withInvoicePages(invoice, async (pages) => {
+      for (const page of pages) {
+        options.signal?.throwIfAborted();
+        const canvas = await capturePage(page, 2);
+        try {
+          options.signal?.throwIfAborted();
+          if (pageCount++) pdf.addPage();
+          pdf.addImage(canvas, 'PNG', 0, 0, 210, 297, undefined, 'FAST');
+        } finally {
+          canvas.width = 0;
+          canvas.height = 0;
+        }
+      }
+    });
+    options.onProgress?.(++count);
+    // Let the browser paint progress and handle cancellation between invoices.
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+  }
+  options.signal?.throwIfAborted();
+  if (!pageCount) throw Error('Pre zvolené obdobie nie sú žiadne faktúry.');
+  return pdf.output('blob');
 }

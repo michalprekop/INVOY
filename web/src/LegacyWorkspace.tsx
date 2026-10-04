@@ -34,6 +34,7 @@ import {
   type Company,
 } from '../shared/model';
 import { InvoiceEditor } from './InvoiceEditor';
+import { InvoiceExportDialog } from './InvoiceExportDialog';
 import { Settings } from './Settings';
 import { Admin } from './Admin';
 import { ErrorBox, Modal, CompanyFields } from './ui';
@@ -68,6 +69,7 @@ export function LegacyWorkspace({
     [table, setTable] = useState(false),
     [trash, setTrash] = useState(false),
     [compactDetail, setCompactDetail] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const invoiceFlush = useRef<(() => Promise<boolean>) | null>(null),
     settingsFlush = useRef<(() => Promise<boolean>) | null>(null),
     openSequence = useRef(0),
@@ -125,10 +127,6 @@ export function LegacyWorkspace({
             (filter === 'Neuhradené' && status(i) !== 'Uhradené')),
       ),
     [sorted, query, year, filter, today],
-  );
-  const overdueCount = useMemo(
-    () => rows.filter((i) => status(i) === 'Po splatnosti').length,
-    [rows, today],
   );
   async function load() {
     setLoading(true);
@@ -345,7 +343,17 @@ export function LegacyWorkspace({
             <strong>
               {rows.length} faktúr{trash ? ' v koši' : ''}
             </strong>
-            <small>{overdueCount} po splatnosti</small>
+            {!trash && (
+              <button
+                className="invoice-export-link"
+                disabled={loading || !rows.length}
+                onClick={async () => {
+                  if (await ready()) setExporting(true);
+                }}
+              >
+                Exportovať
+              </button>
+            )}
           </div>
           <div className="native-invoice-actions">
             <label className="native-search">
@@ -581,6 +589,7 @@ export function LegacyWorkspace({
         <Customers profile={me.profile} version={me.profileVersion} onSaved={onProfile} />
       )}
       {page === 'admin' && me.user.role === 'admin' && <Admin />}
+      {exporting && <InvoiceExportDialog initialYear={year} onClose={() => setExporting(false)} />}
       <AppUpdateNotice
         beforeReload={async () => {
           if (invoiceFlush.current && !(await invoiceFlush.current())) {
