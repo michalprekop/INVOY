@@ -8,6 +8,7 @@ enum InvoyBrand {
     static let ink = Color(red: 25 / 255, green: 26 / 255, blue: 23 / 255)
     static let canvas = Color(red: 233 / 255, green: 231 / 255, blue: 224 / 255)
     static let surface = Color(red: 248 / 255, green: 247 / 255, blue: 242 / 255)
+    static let line = Color(red: 220 / 255, green: 218 / 255, blue: 210 / 255)
 
     static func image(_ name: String) -> NSImage {
         let bundled = Bundle.main.url(forResource: name, withExtension: "svg")
