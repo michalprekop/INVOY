@@ -168,6 +168,7 @@ async function main(): Promise<void> {
     const paper = frame?.querySelector<HTMLElement>('.invoice-paper');
     return frame && paper && Math.abs(paper.getBoundingClientRect().width - frame.clientWidth) < 2;
   });
+  await page.locator('.invoice-paper.manoloBay .manolo-logo').waitFor({ state: 'visible' });
   await capture(page, 'invoice');
   await page.getByRole('button', { name: 'Tabuľkový zoznam', exact: true }).click();
   await page.locator('.native-invoice-table tbody tr').nth(2).waitFor({ state: 'visible' });

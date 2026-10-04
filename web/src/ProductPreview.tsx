@@ -9,7 +9,7 @@ const previews = {
   invoice: {
     src: invoice,
     srcSet: `${invoice} 1328w, ${invoice2x} 2656w, ${invoice3x} 3984w`,
-    alt: 'INVOY: zoznam faktúr vľavo a úprava faktúry priamo na papieri vpravo.',
+    alt: 'INVOY: náhľad faktúry v šablóne Manolo & Bay, s vymyslenými údajmi.',
   },
   overview: {
     src: overview,

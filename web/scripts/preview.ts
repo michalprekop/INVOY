@@ -17,12 +17,18 @@ const origin = `http://127.0.0.1:${address.port}`,
   h = await harness(origin);
 if (productPreview) {
   // Representative regular account, only in this isolated in-memory fixture.
+  const bban = '1100000000001234567890';
+  const checksum = String(98n - (BigInt(bban + '282000') % 97n)).padStart(2, '0');
   await h.db
-    .prepare("UPDATE users SET role='user',name='Ukážkové štúdio' WHERE id=?")
-    .bind(h.identities.owner.id)
+    .prepare(
+      "UPDATE users SET role='user',name='Ukážkové štúdio',profile=json_set(profile,'$.accounts[0].iban',?,'$.accounts[0].holderName',?) WHERE id=?",
+    )
+    .bind(`SK${checksum}${bban}`, 'Ukážkové štúdio, s. r. o.', h.identities.owner.id)
     .run();
 }
-const previewTemplate = process.argv.find((arg) => arg.startsWith('--template='))?.split('=')[1];
+const previewTemplate =
+  process.argv.find((arg) => arg.startsWith('--template='))?.split('=')[1] ??
+  (productPreview ? 'manolo-bay' : undefined);
 if (previewTemplate) {
   const template = await h.db
     .prepare('SELECT id FROM templates WHERE id=?')
@@ -43,6 +49,7 @@ for (const [index, customer] of [
   if (productPreview) {
     invoice.issueDate = '2026-10-04';
     invoice.dueDate = '2026-10-18';
+    invoice.deliveryDate = '2026-10-04';
   }
   if (previewTemplate) invoice.templateID = previewTemplate;
   invoice.customer.name = customer;
@@ -55,6 +62,24 @@ for (const [index, customer] of [
   });
   Object.assign(invoice.supplier, { companyID: '12345678', taxID: '2020123456' });
   invoice.items[0].unitPrice = String([1250, 450, 780][index]);
+  if (productPreview) {
+    invoice.items[0].name = 'Návrh interiéru a výber materiálov';
+    invoice.supplier.name = 'Ukážkové štúdio, s. r. o.';
+    invoice.supplier.email = 'studio@example.com';
+    invoice.supplier.website = 'example.com';
+    invoice.supplier.registration = 'Ukážková spoločnosť – údaje slúžia iba na prezentáciu.';
+    invoice.note = 'Ďakujeme za spoluprácu. Ukážková faktúra s vymyslenými údajmi.';
+    invoice.issuedBy = 'Alex Novák';
+    if (index === 2) {
+      invoice.items[0].unitPrice = '650';
+      invoice.items.push({
+        ...invoice.items[0],
+        id: crypto.randomUUID(),
+        name: 'Zameranie priestoru a konzultácia',
+        unitPrice: '130',
+      });
+    }
+  }
   invoice.paid = index === 1 ? '450' : '0';
   await h.request('owner', `/api/invoices/${invoice.id}`, 'PUT', invoice);
 }
