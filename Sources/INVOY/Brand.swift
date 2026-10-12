@@ -4,6 +4,7 @@ import AppKit
 /// The same approved palette and vector artwork as the public website.
 enum InvoyBrand {
     static let controlHeight: CGFloat = 40
+    static let workspaceInset: CGFloat = 24
     static let yellow = Color(red: 245 / 255, green: 1, blue: 54 / 255)
     static let ink = Color(red: 25 / 255, green: 26 / 255, blue: 23 / 255)
     static let muted = Color(red: 116 / 255, green: 117 / 255, blue: 109 / 255)

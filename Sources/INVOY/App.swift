@@ -149,7 +149,7 @@ struct RootView: View {
                     }
                 }.padding(3).background(InvoyBrand.canvas, in: RoundedRectangle(cornerRadius: 10))
                     .frame(width: cloud.user?.role == "admin" ? 420 : 280).accessibilityIdentifier("main-navigation")
-            }.padding(.horizontal, 24).padding(.vertical, 14).background(InvoyBrand.surface)
+            }.padding(.horizontal, InvoyBrand.workspaceInset).padding(.vertical, 14).background(InvoyBrand.surface)
             Divider()
             ZStack {
                 // Keep the invoice workspace mounted so navigation preserves drafts and list filters.
@@ -258,7 +258,7 @@ struct InvoicesView: View {
                     BrandSegment(title: "Zoznam s náhľadom", symbol: "rectangle.split.2x1", selected: !tableMode) { mode.wrappedValue = false }
                     BrandSegment(title: "Tabuľkový zoznam", symbol: "tablecells", selected: tableMode) { mode.wrappedValue = true }
                 }.padding(3).background(InvoyBrand.canvas, in: RoundedRectangle(cornerRadius: 9)).frame(width: 86)
-            }.padding(.horizontal, 24).padding(.vertical, 14)
+            }.padding(.horizontal, InvoyBrand.workspaceInset).padding(.vertical, 14)
             Divider()
             if tableMode {
                 invoiceTable

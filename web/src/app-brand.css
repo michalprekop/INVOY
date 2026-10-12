@@ -12,6 +12,7 @@
 .native-shell {
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   background: #fff;
+  --workspace-gutter: 24px;
 }
 .native-header {
   display: grid;
@@ -399,6 +400,7 @@
 .native-invoice-toolbar > .native-segments:last-child {
   width: 86px;
   flex-shrink: 0;
+  margin-left: auto;
 }
 .native-invoice-toolbar > .native-segments:last-child button {
   padding-inline: 10px;
@@ -677,5 +679,17 @@
   }
   .original-editor-toolbar .toolbar-actions > :is(select, .brand-select) {
     flex-basis: 100%;
+  }
+}
+
+/* The account menu, view switch and PDF action share one right edge. */
+.native-header,
+.native-invoice-toolbar,
+.original-editor-toolbar {
+  padding-inline-end: var(--workspace-gutter);
+}
+@media (max-width: 900px) {
+  .native-shell {
+    --workspace-gutter: 14px;
   }
 }
