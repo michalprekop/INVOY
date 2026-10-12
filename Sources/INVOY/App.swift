@@ -354,6 +354,7 @@ struct InvoicesView: View {
                 if let invoice = selected {
                     IconButton("Duplikovať", "doc.on.doc") { duplicateInvoice(invoice) }
                     IconButton("Vymazať", "trash") { request { deleting = invoice } }
+                        .foregroundStyle(InvoyBrand.muted)
                     Button { begin(invoice) } label: { Label("Upraviť", systemImage: "pencil") }
                     Button { store.exportPDF(invoice) } label: { Label("PDF", systemImage: "square.and.arrow.down") }
                 }

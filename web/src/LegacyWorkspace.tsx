@@ -370,6 +370,7 @@ export function LegacyWorkspace({
             </button>
           </div>
           <button
+            className={trash ? undefined : 'workspace-trash'}
             data-tooltip={trash ? 'Späť na faktúry' : 'Kôš'}
             aria-label={trash ? 'Späť na faktúry' : 'Kôš'}
             onClick={async () => {

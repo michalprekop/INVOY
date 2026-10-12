@@ -393,6 +393,9 @@
   height: var(--control-height);
   flex-shrink: 0;
 }
+.native-shell .native-invoice-toolbar > .workspace-trash {
+  color: #74756d;
+}
 .native-invoice-toolbar > .native-segments:last-child {
   width: 86px;
   flex-shrink: 0;

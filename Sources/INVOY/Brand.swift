@@ -6,6 +6,7 @@ enum InvoyBrand {
     static let controlHeight: CGFloat = 40
     static let yellow = Color(red: 245 / 255, green: 1, blue: 54 / 255)
     static let ink = Color(red: 25 / 255, green: 26 / 255, blue: 23 / 255)
+    static let muted = Color(red: 116 / 255, green: 117 / 255, blue: 109 / 255)
     static let canvas = Color(red: 233 / 255, green: 231 / 255, blue: 224 / 255)
     static let surface = Color(red: 248 / 255, green: 247 / 255, blue: 242 / 255)
     static let line = Color(red: 220 / 255, green: 218 / 255, blue: 210 / 255)
