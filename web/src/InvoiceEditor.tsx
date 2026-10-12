@@ -1,6 +1,6 @@
 import { BrandSelect } from './BrandSelect';
 import { useEffect, useRef, useState } from 'react';
-import { Check, Copy, Download, History, Palette, Settings2, Trash2 } from 'lucide-react';
+import { Euro, Copy, Download, History, Palette, Settings2, Trash2 } from 'lucide-react';
 import {
   invoiceSchema,
   invoiceInput,
@@ -178,14 +178,6 @@ export function InvoiceEditor({
         <span className={'native-status' + (paid ? ' paid' : overdue ? ' overdue' : '')}>
           {paid ? 'Uhradená' : overdue ? 'Po splatnosti' : 'Na úhradu'}
         </span>
-        {!paid && (
-          <button
-            className="button secondary"
-            onClick={() => update({ paid: totals(invoice).total })}
-          >
-            <Check size={16} aria-hidden="true" /> Označiť ako uhradenú
-          </button>
-        )}
         <span className="save-state">{busy ? 'Ukladám…' : dirty ? 'Rozpracované' : 'Uložené'}</span>
         <div className="toolbar-actions">
           <BrandSelect
@@ -205,6 +197,21 @@ export function InvoiceEditor({
             ))}
           </BrandSelect>
           <button
+            title="Pridať úhradu"
+            aria-label="Pridať úhradu"
+            aria-pressed={paid}
+            onClick={() => update({ paid: paid ? '0' : totals(invoice).total })}
+          >
+            <Euro size={16} aria-hidden="true" />
+          </button>
+          <button
+            title="Možnosti faktúry"
+            aria-label="Možnosti faktúry"
+            onClick={() => setOptions(true)}
+          >
+            <Settings2 size={16} />
+          </button>
+          <button
             title="Duplikovať"
             aria-label="Duplikovať"
             onClick={() => onDuplicate(latest.current)}
@@ -213,13 +220,6 @@ export function InvoiceEditor({
           </button>
           <button title="Vymazať" aria-label="Vymazať" onClick={onDelete}>
             <Trash2 size={16} />
-          </button>
-          <button
-            title="Možnosti faktúry"
-            aria-label="Možnosti faktúry"
-            onClick={() => setOptions(true)}
-          >
-            <Settings2 size={16} />
           </button>
           <button
             className="button"

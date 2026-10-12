@@ -123,13 +123,6 @@ struct InvoiceEditor: View {
     @ViewBuilder private var editorHeading: some View {
         Text.numeric(invoice.number, size: 16, weight: .semibold, monospaced: true)
         StatusBadge(invoice: invoice)
-        if invoice.remaining > 0 {
-            Button {
-                draft.invoice.paid = invoice.total
-            } label: { Label("Označiť ako uhradenú", systemImage: "checkmark") }
-                .buttonStyle(BrandSecondaryButtonStyle())
-                .fixedSize()
-        }
         Text(draft.saveLabel).font(.system(size: 10))
             .foregroundStyle(draft.saveState == .failed ? .red : .secondary)
             .lineLimit(2).frame(maxWidth: 110, alignment: .leading)
@@ -141,10 +134,11 @@ struct InvoiceEditor: View {
             .frame(width: 200)
             .help("Šablóna faktúry: " + (invoice.cloudStyle?.name ?? invoice.resolvedTemplate(default: store.database.settings.defaultInvoiceTemplate).title))
             .accessibilityLabel("Šablóna faktúry")
-        IconButton("Duplikovať", "doc.on.doc", action: onDuplicate)
+        IconButton("Pridať úhradu", "eurosign") {
+            draft.invoice.paid = invoice.remaining > 0 ? invoice.total : 0
+        }
             .buttonStyle(BrandIconButtonStyle())
-        IconButton("Vymazať", "trash", action: onDelete)
-            .buttonStyle(BrandIconButtonStyle())
+            .accessibilityValue(invoice.remaining > 0 ? "Na úhradu" : "Uhradená")
         IconButton("Možnosti faktúry", "slider.horizontal.3") { options.toggle() }
             .buttonStyle(BrandIconButtonStyle())
             .popover(isPresented: $options) {
@@ -152,6 +146,10 @@ struct InvoiceEditor: View {
                     .background(Color(nsColor: .windowBackgroundColor))
                     .presentationBackground(Color(nsColor: .windowBackgroundColor))
             }
+        IconButton("Duplikovať", "doc.on.doc", action: onDuplicate)
+            .buttonStyle(BrandIconButtonStyle())
+        IconButton("Vymazať", "trash", action: onDelete)
+            .buttonStyle(BrandIconButtonStyle())
         Button { if draft.flush() { store.exportPDF(draft.invoice) } } label: { Label("PDF", systemImage: "square.and.arrow.down") }
             .buttonStyle(BrandButtonStyle()).disabled(!draft.canExport)
             .help("Uložiť PDF")
@@ -161,12 +159,6 @@ struct InvoiceEditor: View {
         VStack(alignment: .leading, spacing: 16) {
             InvoiceTemplatePicker(draft: draft)
             Divider()
-            if invoice.remaining > 0 {
-                Button {
-                    draft.invoice.paid = invoice.total
-                    options = false
-                } label: { Label("Označiť ako uhradenú", systemImage: "checkmark") }
-            }
             Toggle("Uviesť dátum dodania", isOn: Binding(get: { invoice.deliveryDate != nil }, set: { draft.invoice.deliveryDate = $0 ? invoice.issueDate : nil }))
             Field("Objednávka", text: $draft.invoice.orderNumber, numeric: true)
             HStack {
