@@ -115,7 +115,7 @@ struct BrandDropdown: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain).font(valueFont).foregroundStyle(InvoyBrand.ink)
-        .accessibilityLabel(title).accessibilityValue(value).help(value)
+        .accessibilityLabel(title).accessibilityValue(value).instantTooltip(title)
         .background(GeometryReader { geometry in
             Color.clear.onAppear { width = geometry.size.width }
                 .onChange(of: geometry.size.width) { _, next in width = next }
@@ -216,6 +216,7 @@ struct BrandSegment: View {
             // Plain buttons otherwise only hit-test the text/image of an inactive segment.
             .contentShape(Rectangle())
         }.buttonStyle(.plain).accessibilityLabel(title)
+            .instantTooltip(symbol != nil && iconOnly ? title : nil)
             .accessibilityAddTraits(selected ? .isSelected : [])
     }
 }

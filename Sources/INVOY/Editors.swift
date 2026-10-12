@@ -132,7 +132,6 @@ struct InvoiceEditor: View {
     @ViewBuilder private var editorActions: some View {
         InvoiceTemplatePicker(draft: draft)
             .frame(width: 200)
-            .help("Šablóna faktúry: " + (invoice.cloudStyle?.name ?? invoice.resolvedTemplate(default: store.database.settings.defaultInvoiceTemplate).title))
             .accessibilityLabel("Šablóna faktúry")
         IconButton("Pridať úhradu", "eurosign") {
             draft.invoice.paid = invoice.remaining > 0 ? invoice.total : 0
@@ -152,7 +151,7 @@ struct InvoiceEditor: View {
             .buttonStyle(BrandIconButtonStyle())
         Button { if draft.flush() { store.exportPDF(draft.invoice) } } label: { Label("PDF", systemImage: "square.and.arrow.down") }
             .buttonStyle(BrandButtonStyle()).disabled(!draft.canExport)
-            .help("Uložiť PDF")
+            .instantTooltip("Uložiť PDF")
     }
 
     private var invoiceOptions: some View {

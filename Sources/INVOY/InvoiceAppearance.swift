@@ -39,7 +39,7 @@ struct InvoiceAppearanceSettings: View {
                         BrandDropdownItem(title: template.title, selected: settings.defaultInvoiceTemplate == template) {
                             settings.invoiceTemplate = template == .boringDefault01 ? nil : template
                         }
-                    }).help("Platí pre všetky faktúry, ktoré nemajú vybranú vlastnú šablónu.")
+                    }).accessibilityHint("Platí pre všetky faktúry, ktoré nemajú vybranú vlastnú šablónu.")
                 }
                 Divider()
                 Group {
@@ -54,7 +54,7 @@ struct InvoiceAppearanceSettings: View {
                                             Image(systemName: "checkmark").font(.system(size: 11, weight: .bold)).foregroundStyle(.white)
                                         }
                                     }.frame(width: 26, height: 26)
-                            }.buttonStyle(.plain).help(name).accessibilityLabel(name)
+                            }.buttonStyle(.plain).instantTooltip(name).accessibilityLabel(name)
                         }
                     }
                     ColorPicker("Vlastná farba", selection: color, supportsOpacity: false)
@@ -65,7 +65,7 @@ struct InvoiceAppearanceSettings: View {
                             .disabled(settings.invoiceAccent == .standard)
                     }
                 }.disabled(settings.defaultInvoiceTemplate != .boringDefault01)
-                    .help("Farba zvýraznení patrí k šablóne Boring default 01. Ostatné šablóny majú vlastné farby.")
+                    .accessibilityHint("Farba zvýraznení patrí k šablóne Boring default 01. Ostatné šablóny majú vlastné farby.")
             }.frame(maxWidth: .infinity, alignment: .leading)
             LivePreview(invoice: invoice, showsZoomControls: true, accentOverride: settings.invoiceAccent,
                         templateOverride: settings.defaultInvoiceTemplate)

@@ -182,7 +182,7 @@ export function InvoiceEditor({
         <div className="toolbar-actions">
           <BrandSelect
             aria-label="Šablóna faktúry"
-            title="Šablóna faktúry"
+            data-tooltip="Šablóna faktúry"
             leadingIcon={<Palette size={16} aria-hidden="true" />}
             value={invoice.templateID}
             onValueChange={(value) => update({ templateID: value })}
@@ -197,7 +197,7 @@ export function InvoiceEditor({
             ))}
           </BrandSelect>
           <button
-            title="Pridať úhradu"
+            data-tooltip="Pridať úhradu"
             aria-label="Pridať úhradu"
             aria-pressed={paid}
             onClick={() => update({ paid: paid ? '0' : totals(invoice).total })}
@@ -205,25 +205,25 @@ export function InvoiceEditor({
             <Euro size={16} aria-hidden="true" />
           </button>
           <button
-            title="Možnosti faktúry"
+            data-tooltip="Možnosti faktúry"
             aria-label="Možnosti faktúry"
             onClick={() => setOptions(true)}
           >
             <Settings2 size={16} />
           </button>
           <button
-            title="Duplikovať"
+            data-tooltip="Duplikovať"
             aria-label="Duplikovať"
             onClick={() => onDuplicate(latest.current)}
           >
             <Copy size={16} />
           </button>
-          <button title="Vymazať" aria-label="Vymazať" onClick={onDelete}>
+          <button data-tooltip="Vymazať" aria-label="Vymazať" onClick={onDelete}>
             <Trash2 size={16} />
           </button>
           <button
             className="button"
-            title="Uložiť PDF"
+            data-tooltip="Uložiť PDF"
             aria-label="Uložiť PDF"
             aria-busy={exporting}
             disabled={exporting}

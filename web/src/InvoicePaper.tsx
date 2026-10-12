@@ -137,7 +137,8 @@ function Party({
         {onChange && (
           <span className="party-controls">
             <button
-              title={'Nastavenia ' + (title === 'DODÁVATEĽ' ? 'dodávateľa' : 'odberateľa')}
+              data-tooltip={'Nastavenia ' + (title === 'DODÁVATEĽ' ? 'dodávateľa' : 'odberateľa')}
+              aria-label={'Nastavenia ' + (title === 'DODÁVATEĽ' ? 'dodávateľa' : 'odberateľa')}
               onClick={() => setDetails(true)}
             >
               <MoreHorizontal size={15} />

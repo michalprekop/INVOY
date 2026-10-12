@@ -45,6 +45,7 @@ export function BrandSelect({
   leadingIcon,
   children,
   className = '',
+  title,
   ...props
 }: Props) {
   const options = optionsFrom(children);
@@ -108,6 +109,7 @@ export function BrandSelect({
   return (
     <>
       <button
+        data-tooltip={props['aria-label'] ?? title}
         {...props}
         ref={trigger}
         type="button"
@@ -188,7 +190,7 @@ export function BrandSelect({
             className="brand-select-list"
             style={position}
             role="listbox"
-            aria-label={props['aria-label'] ?? props.title}
+            aria-label={props['aria-label'] ?? title}
             onMouseDown={(event) => event.preventDefault()}
           >
             {options.map((option, index) => (

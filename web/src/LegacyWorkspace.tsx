@@ -370,7 +370,7 @@ export function LegacyWorkspace({
             </button>
           </div>
           <button
-            title={trash ? 'Späť na faktúry' : 'Kôš'}
+            data-tooltip={trash ? 'Späť na faktúry' : 'Kôš'}
             aria-label={trash ? 'Späť na faktúry' : 'Kôš'}
             onClick={async () => {
               if (await ready()) {
@@ -385,7 +385,7 @@ export function LegacyWorkspace({
             <button
               className={!table ? 'active' : ''}
               aria-label="Zoznam s náhľadom"
-              title="Zoznam s náhľadom"
+              data-tooltip="Zoznam s náhľadom"
               onClick={async () => {
                 if (await ready()) setTable(false);
               }}
@@ -395,7 +395,7 @@ export function LegacyWorkspace({
             <button
               className={table ? 'active' : ''}
               aria-label="Tabuľkový zoznam"
-              title="Tabuľkový zoznam"
+              data-tooltip="Tabuľkový zoznam"
               onClick={async () => {
                 if (await ready()) setTable(true);
               }}
@@ -481,7 +481,11 @@ export function LegacyWorkspace({
                         </td>
                         {trash && (
                           <td>
-                            <button title="Obnoviť" onClick={() => void remove(i, true)}>
+                            <button
+                              data-tooltip="Obnoviť"
+                              aria-label="Obnoviť"
+                              onClick={() => void remove(i, true)}
+                            >
                               <RotateCcw size={15} />
                             </button>
                           </td>
@@ -526,7 +530,8 @@ export function LegacyWorkspace({
                       {trash && (
                         <button
                           className="restore-button"
-                          title="Obnoviť"
+                          data-tooltip="Obnoviť"
+                          aria-label="Obnoviť"
                           onClick={() => void remove(i, true)}
                         >
                           <RotateCcw size={15} />
@@ -672,11 +677,16 @@ function Customers({
               </small>
             </span>
           </button>
-          <button title="Upraviť odberateľa" onClick={() => setEditing(c)}>
+          <button
+            data-tooltip="Upraviť odberateľa"
+            aria-label="Upraviť odberateľa"
+            onClick={() => setEditing(c)}
+          >
             <MoreHorizontal size={18} />
           </button>
           <button
-            title="Odstrániť odberateľa"
+            data-tooltip="Odstrániť odberateľa"
+            aria-label="Odstrániť odberateľa"
             onClick={() => {
               if (confirm('Odstrániť odberateľa? Existujúce faktúry sa nezmenia.'))
                 void save(profile.customers!.filter((x) => x.id !== c.id));

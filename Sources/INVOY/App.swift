@@ -486,5 +486,5 @@ struct IconButton: View {
     let symbol: String
     let action: () -> Void
     init(_ title: String, _ symbol: String, action: @escaping () -> Void) { self.title = title; self.symbol = symbol; self.action = action }
-    var body: some View { Button(action: action) { Image(systemName: symbol).frame(width: 19, height: 21) }.help(title).accessibilityLabel(title) }
+    var body: some View { Button(action: action) { Image(systemName: symbol).frame(width: 19, height: 21) }.instantTooltip(title).accessibilityLabel(title) }
 }

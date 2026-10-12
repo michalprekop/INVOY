@@ -252,7 +252,7 @@ struct InvoicePaper: View {
                 Spacer()
                 BrandDropdown(title: "Mena", value: draft.invoice.currency, compact: true, valueFont: .system(size: 13, design: mono ? .monospaced : .default), items: ["EUR", "CZK", "USD", "GBP"].map { currency in
                     BrandDropdownItem(title: currency, selected: draft.invoice.currency == currency) { draft.invoice.currency = currency }
-                }).frame(width: 72).help("Mena faktúry")
+                }).frame(width: 72)
             }
         }
     }
@@ -362,7 +362,7 @@ private struct PaperCompany: View {
                         .frame(width: 24, height: 17)
                 }
                 .buttonStyle(.plain).foregroundStyle(.secondary)
-                .help(supplier ? "Nastavenia dodávateľa" : "Nastavenia odberateľa")
+                .instantTooltip(supplier ? "Nastavenia dodávateľa" : "Nastavenia odberateľa")
                 .accessibilityLabel(supplier ? "Nastavenia dodávateľa" : "Nastavenia odberateľa")
                 .popover(isPresented: $details) { CompanyFields(company: $company, supplier: supplier).padding(20).frame(width: 320) }
             }.frame(height: 17)
