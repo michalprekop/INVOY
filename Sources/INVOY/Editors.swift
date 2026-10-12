@@ -123,6 +123,13 @@ struct InvoiceEditor: View {
     @ViewBuilder private var editorHeading: some View {
         Text.numeric(invoice.number, size: 16, weight: .semibold, monospaced: true)
         StatusBadge(invoice: invoice)
+        if invoice.remaining > 0 {
+            Button {
+                draft.invoice.paid = invoice.total
+            } label: { Label("Označiť ako uhradenú", systemImage: "checkmark") }
+                .buttonStyle(BrandSecondaryButtonStyle())
+                .fixedSize()
+        }
         Text(draft.saveLabel).font(.system(size: 10))
             .foregroundStyle(draft.saveState == .failed ? .red : .secondary)
             .lineLimit(2).frame(maxWidth: 110, alignment: .leading)

@@ -1,6 +1,6 @@
 import { BrandSelect } from './BrandSelect';
 import { useEffect, useRef, useState } from 'react';
-import { Copy, Download, History, Palette, Settings2, Trash2 } from 'lucide-react';
+import { Check, Copy, Download, History, Palette, Settings2, Trash2 } from 'lucide-react';
 import {
   invoiceSchema,
   invoiceInput,
@@ -178,6 +178,14 @@ export function InvoiceEditor({
         <span className={'native-status' + (paid ? ' paid' : overdue ? ' overdue' : '')}>
           {paid ? 'Uhradená' : overdue ? 'Po splatnosti' : 'Na úhradu'}
         </span>
+        {!paid && (
+          <button
+            className="button secondary"
+            onClick={() => update({ paid: totals(invoice).total })}
+          >
+            <Check size={16} aria-hidden="true" /> Označiť ako uhradenú
+          </button>
+        )}
         <span className="save-state">{busy ? 'Ukladám…' : dirty ? 'Rozpracované' : 'Uložené'}</span>
         <div className="toolbar-actions">
           <BrandSelect
