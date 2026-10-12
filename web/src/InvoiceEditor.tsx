@@ -197,8 +197,8 @@ export function InvoiceEditor({
             ))}
           </BrandSelect>
           <button
-            data-tooltip="Pridať úhradu"
-            aria-label="Pridať úhradu"
+            data-tooltip={paid ? 'Zmeniť na: Čaká na úhradu' : 'Pridať úhradu'}
+            aria-label={paid ? 'Zmeniť na: Čaká na úhradu' : 'Pridať úhradu'}
             aria-pressed={paid}
             onClick={() => update({ paid: paid ? '0' : totals(invoice).total })}
           >

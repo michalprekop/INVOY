@@ -133,7 +133,7 @@ struct InvoiceEditor: View {
         InvoiceTemplatePicker(draft: draft)
             .frame(width: 200)
             .accessibilityLabel("Šablóna faktúry")
-        IconButton("Pridať úhradu", "eurosign") {
+        IconButton(invoice.remaining > 0 ? "Pridať úhradu" : "Zmeniť na: Čaká na úhradu", "eurosign") {
             draft.invoice.paid = invoice.remaining > 0 ? invoice.total : 0
         }
             .buttonStyle(BrandIconButtonStyle())
