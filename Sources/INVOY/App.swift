@@ -308,7 +308,7 @@ struct InvoicesView: View {
             HStack {
                 yearPicker
                 Spacer(minLength: 8); sortPicker
-            }.padding(12)
+            }.padding(.leading, InvoyBrand.workspaceInset).padding(.trailing, 12).padding(.vertical, 12)
             Divider()
             List(selection: listSelection) {
                 ForEach(filtered) { invoice in
@@ -328,6 +328,7 @@ struct InvoicesView: View {
                         }
                 }
             }.listStyle(.inset).scrollContentBackground(.hidden)
+                .padding(.leading, InvoyBrand.workspaceInset - 10)
                 .environment(\.defaultMinListRowHeight, InvoiceRow.height)
                 .overlay { if filtered.isEmpty { ContentUnavailableView("Bez výsledkov", systemImage: "doc.text.magnifyingglass") } }
         }
@@ -337,13 +338,13 @@ struct InvoicesView: View {
         let years = [0] + Array(Set(store.invoices.map { Calendar.current.component(.year, from: $0.issueDate) })).sorted(by: >)
         return BrandDropdown(title: "Rok", value: year == 0 ? "Všetky roky" : String(year), items: years.map { option in
             BrandDropdownItem(title: option == 0 ? "Všetky roky" : String(option), selected: year == option) { year = option }
-        }).frame(width: 132)
+        }).frame(maxWidth: 132)
     }
 
     private var sortPicker: some View {
         BrandDropdown(title: "Zoradenie", value: sortOrder, items: ["Najnovšie", "Splatnosť", "Odberateľ"].map { option in
             BrandDropdownItem(title: option, selected: sortOrder == option) { sortOrder = option }
-        }).frame(width: 132)
+        }).frame(maxWidth: 132)
     }
 
     private var invoiceTable: some View {

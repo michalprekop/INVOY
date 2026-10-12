@@ -693,3 +693,15 @@
     --workspace-gutter: 14px;
   }
 }
+
+/* Align the left backgrounds with the wordmark and invoice status filters. */
+.native-header,
+.native-invoice-toolbar,
+.native-list-heading,
+.native-list-scroll {
+  padding-inline-start: var(--workspace-gutter);
+}
+.native-list-heading :is(select, .brand-select) {
+  flex-shrink: 1;
+  min-width: 0;
+}
