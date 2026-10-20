@@ -5,7 +5,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { InvoicePaper } from '../src/InvoicePaper';
 import { baseConfig, freshInvoice, emptyProfile, invoiceSchema } from '../shared/model';
 
-test('English labels render in every PDF template without changing invoice data', () => {
+test('English labels render in editor and PDF in every template without changing invoice data', () => {
   const invoice = freshInvoice(emptyProfile(), '2026001', 'classic');
   invoice.language = 'en';
   invoice.supplier.name = 'Dodávateľ s.r.o.';
@@ -16,32 +16,47 @@ test('English labels render in every PDF template without changing invoice data'
   invoice.note = 'Vlastná poznámka.';
   invoice.issuedBy = 'Test Person';
   const before = structuredClone(invoice);
-  for (const layout of ['classic', 'mono', 'manoloBay'] as const) {
-    const html = renderToStaticMarkup(
-      createElement(InvoicePaper, { invoice, theme: { ...baseConfig, layout } }),
-    );
-    for (const label of [
-      'INVOICE',
-      'SUPPLIER',
-      'CUSTOMER',
-      'Payment reference',
-      'Amount due',
-      'VAT',
-      'Discount',
-      'Issued by',
-      'Pôvodná položka',
-      'Vlastná poznámka.',
-    ])
-      assert.ok(html.includes(label), `${layout}: ${label}`);
-    for (const label of [
-      'FAKTÚRA',
-      'DODÁVATEĽ',
-      'ODBERATEĽ',
-      'Variabilný symbol',
-      'Suma na úhradu',
-      'Vystavil:',
-    ])
-      assert.ok(!html.includes(label), `${layout}: ${label}`);
+  for (const editable of [false, true]) {
+    for (const layout of ['classic', 'mono', 'manoloBay'] as const) {
+      const html = renderToStaticMarkup(
+        createElement(InvoicePaper, {
+          invoice,
+          theme: { ...baseConfig, layout },
+          ...(editable
+            ? {
+                edit: {
+                  profile: emptyProfile(),
+                  update: () => {
+                    throw Error('Rendering must not mutate invoice');
+                  },
+                },
+              }
+            : {}),
+        }),
+      );
+      for (const label of [
+        'INVOICE',
+        'SUPPLIER',
+        'CUSTOMER',
+        'Payment reference',
+        'Amount due',
+        'VAT',
+        'Discount',
+        'Issued by',
+        'Pôvodná položka',
+        'Vlastná poznámka.',
+      ])
+        assert.ok(html.includes(label), `${layout}: ${label}`);
+      for (const label of [
+        'FAKTÚRA',
+        'DODÁVATEĽ',
+        'ODBERATEĽ',
+        'Variabilný symbol',
+        'Suma na úhradu',
+        'Vystavil:',
+      ])
+        assert.ok(!html.includes(label), `${layout}: ${label}`);
+    }
   }
   assert.deepEqual(invoice, before);
   delete invoice.language;

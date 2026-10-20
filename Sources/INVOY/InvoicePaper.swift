@@ -2,6 +2,17 @@ import SwiftUI
 import AppKit
 import InvoiceCore
 
+private struct InvoicePaperLanguageKey: EnvironmentKey {
+    static let defaultValue: InvoiceLanguage = .sk
+}
+
+extension EnvironmentValues {
+    var invoicePaperLanguage: InvoiceLanguage {
+        get { self[InvoicePaperLanguageKey.self] }
+        set { self[InvoicePaperLanguageKey.self] = newValue }
+    }
+}
+
 struct InvoicePaperCanvas: View {
     @EnvironmentObject private var store: Store
     @ObservedObject var draft: InvoiceDraft
@@ -50,6 +61,7 @@ struct InvoicePaper: View {
     private var monoLayout: Bool { mono || manolo }
     private var accent: Color { monoLayout ? .black : Color(nsColor: store.database.settings.invoiceAccent.textOnWhite.nsColor) }
     private var invoice: Invoice { draft.invoice }
+    private func t(_ value: String) -> String { invoice.documentLanguage.text(value) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -86,6 +98,7 @@ struct InvoicePaper: View {
         }
         .foregroundStyle(Color(red: 0.11, green: 0.15, blue: 0.16))
         .environment(\.invoiceNumericMonospaced, !manolo)
+        .environment(\.invoicePaperLanguage, invoice.documentLanguage)
         .environmentObject(draft)
         .sheet(item: $newCustomer) { company in
             CustomerEditor(company: company) { customer in
@@ -114,12 +127,12 @@ struct InvoicePaper: View {
             HStack(alignment: .top, spacing: 16) {
                 Group {
                     if manolo {
-                        PaperText(ManoloInvoiceBrand.contacts[0], size: 10).padding(.vertical, 3)
+                        PaperText("\(t("Vystavil")): Dominika Vašek", size: 10).padding(.vertical, 3)
                     } else {
                         HStack(alignment: .firstTextBaseline, spacing: 3) {
-                            Text("Vystavil:").font(.system(size: 10, design: mono ? .monospaced : .default))
+                            Text(t("Vystavil") + ":").font(.system(size: 10, design: mono ? .monospaced : .default))
                                 .padding(.vertical, 3).fixedSize()
-                            PaperText(invoice.issuedBy.isEmpty ? "Vystavil" : invoice.issuedBy, size: 10)
+                            PaperText(invoice.issuedBy.isEmpty ? t("Vystavil") : invoice.issuedBy, size: 10)
                                 .padding(.vertical, 3).hidden().accessibilityHidden(true)
                                 .overlay {
                                     PaperField("Vystavil", text: $draft.invoice.issuedBy, size: 10, color: .secondary)
@@ -158,17 +171,17 @@ struct InvoicePaper: View {
                 }
                 HStack(alignment: .bottom, spacing: 24) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Číslo faktúry").font(.system(size: 11, design: mono ? .monospaced : .default)).foregroundStyle(.secondary)
+                        Text(t("Číslo faktúry")).font(.system(size: 11, design: mono ? .monospaced : .default)).foregroundStyle(.secondary)
                         PaperField("Číslo faktúry", text: $draft.invoice.number, size: 18, weight: .bold, numeric: true)
                     }
                     Spacer(minLength: 0)
-                    Text("FAKTÚRA").font(.system(size: 14, weight: .semibold, design: mono ? .monospaced : .default))
+                    Text(t("FAKTÚRA")).font(.system(size: 14, weight: .semibold, design: mono ? .monospaced : .default))
                         .fixedSize().padding(.bottom, 3)
                 }
             }
         } else {
             HStack(alignment: .center, spacing: 12) {
-                Text("FAKTÚRA").font(.system(size: 14, weight: .semibold, design: mono ? .monospaced : .default)).foregroundStyle(accent)
+                Text(t("FAKTÚRA")).font(.system(size: 14, weight: .semibold, design: mono ? .monospaced : .default)).foregroundStyle(accent)
                 Spacer(minLength: 28)
                 PaperField("Číslo faktúry", text: $draft.invoice.number, size: 30, weight: .semibold,
                            numeric: true, alignment: .trailing)
@@ -184,9 +197,9 @@ struct InvoicePaper: View {
                 paperDate("Dátum dodania", date: Binding(get: { invoice.deliveryDate ?? invoice.issueDate }, set: { draft.invoice.deliveryDate = $0 }))
             }
             VStack(alignment: .leading, spacing: 7) {
-                Text("Forma úhrady").font(.system(size: 11, design: mono ? .monospaced : .default)).foregroundStyle(.secondary)
-                BrandDropdown(title: "Forma úhrady", value: draft.invoice.paymentMethod, compact: true, valueFont: .system(size: 13, design: mono ? .monospaced : .default), items: ["Bankový prevod", "Hotovosť", "Platobná karta", "Dobierka"].map { method in
-                    BrandDropdownItem(title: method, selected: draft.invoice.paymentMethod == method) { draft.invoice.paymentMethod = method }
+                Text(t("Forma úhrady")).font(.system(size: 11, design: mono ? .monospaced : .default)).foregroundStyle(.secondary)
+                BrandDropdown(title: "Forma úhrady", value: t(draft.invoice.paymentMethod), compact: true, valueFont: .system(size: 13, design: mono ? .monospaced : .default), items: ["Bankový prevod", "Hotovosť", "Platobná karta", "Dobierka"].map { method in
+                    BrandDropdownItem(title: t(method), selected: draft.invoice.paymentMethod == method) { draft.invoice.paymentMethod = method }
                 }).fixedSize(horizontal: false, vertical: true)
             }.frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -194,7 +207,7 @@ struct InvoicePaper: View {
 
     private func paperDate(_ title: String, date: Binding<Date>) -> some View {
         VStack(alignment: .leading, spacing: 7) {
-            Text(title).font(.system(size: 11, design: mono ? .monospaced : .default)).foregroundStyle(.secondary)
+            Text(t(title)).font(.system(size: 11, design: mono ? .monospaced : .default)).foregroundStyle(.secondary)
             MonospacedDatePicker(title: title, date: date, fontSize: 13, bordered: false).fixedSize()
         }.frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -207,21 +220,21 @@ struct InvoicePaper: View {
                 }
             ).fixedSize(horizontal: false, vertical: true)
             HStack(spacing: 7) {
-                Text("Variabilný symbol:").font(.system(size: 12, weight: .medium, design: mono ? .monospaced : .default))
+                Text(t("Variabilný symbol") + ":").font(.system(size: 12, weight: .medium, design: mono ? .monospaced : .default))
                 PaperField("Variabilný symbol", text: $draft.invoice.variableSymbol, size: 12, numeric: true).frame(width: 115)
                 if !invoice.constantSymbol.isEmpty {
-                    Text("KS:").font(.system(size: 12, design: mono ? .monospaced : .default))
+                    Text(t("KS:")).font(.system(size: 12, design: mono ? .monospaced : .default))
                     PaperField("Konštantný symbol", text: $draft.invoice.constantSymbol, size: 12, numeric: true).frame(width: 68)
                 }
                 if !invoice.specificSymbol.isEmpty {
-                    Text("ŠS:").font(.system(size: 12, design: mono ? .monospaced : .default))
+                    Text(t("ŠS:")).font(.system(size: 12, design: mono ? .monospaced : .default))
                     PaperField("Špecifický symbol", text: $draft.invoice.specificSymbol, size: 12, numeric: true)
                 }
                 Spacer(minLength: 0)
             }
             if !invoice.orderNumber.isEmpty {
                 HStack(spacing: 12) {
-                    Text("Objednávka:").font(.system(size: 12, design: mono ? .monospaced : .default))
+                    Text(t("Objednávka") + ":").font(.system(size: 12, design: mono ? .monospaced : .default))
                     PaperField("Objednávka", text: $draft.invoice.orderNumber, size: 12, numeric: true)
                 }
             }
@@ -232,11 +245,11 @@ struct InvoicePaper: View {
         VStack(spacing: 0) {
             if monoLayout { Rectangle().fill(.black).frame(height: manolo ? 2 : 10) }
             HStack(spacing: 10) {
-                Text("POLOŽKA").frame(maxWidth: .infinity, alignment: .leading)
-                Text("POČET").frame(width: 52, alignment: .trailing)
-                Text("JEDNOTKA").frame(width: 56, alignment: .trailing)
-                Text("CENA / MJ").frame(width: 90, alignment: .trailing)
-                Text(invoice.supplier.vatPayer ? "SPOLU S DPH" : "SPOLU").frame(width: 110, alignment: .trailing)
+                Text(t("POLOŽKA")).frame(maxWidth: .infinity, alignment: .leading)
+                Text(t("POČET")).frame(width: 52, alignment: .trailing)
+                Text(t("JEDNOTKA")).frame(width: 56, alignment: .trailing)
+                Text(t("CENA / MJ")).frame(width: 90, alignment: .trailing)
+                Text(t(invoice.supplier.vatPayer ? "SPOLU S DPH" : "SPOLU")).frame(width: 110, alignment: .trailing)
             }.font(.system(size: 10, weight: .semibold, design: mono ? .monospaced : .default)).foregroundStyle(.secondary).padding(12).background(Color(white: monoLayout ? 1 : 0.96))
             ForEach($draft.invoice.items) { $item in
                 PaperItem(item: $item, currency: invoice.currency, vatPayer: invoice.supplier.vatPayer,
@@ -260,10 +273,10 @@ struct InvoicePaper: View {
     @ViewBuilder private var closing: some View {
         if monoLayout {
             totals
-            PaperField("Poznámka", text: $draft.invoice.note, size: 12, color: .secondary).padding(.top, manolo ? 12 : 18)
+            PaperField("Poznámka", text: $draft.invoice.note, size: 12, color: .secondary, displayValue: invoice.note == "Nie sme platiteľmi DPH." ? t(invoice.note) : invoice.note).padding(.top, manolo ? 12 : 18)
         } else {
             HStack(alignment: .top, spacing: 36) {
-                PaperField("Poznámka", text: $draft.invoice.note, size: 12, color: .secondary)
+                PaperField("Poznámka", text: $draft.invoice.note, size: 12, color: .secondary, displayValue: invoice.note == "Nie sme platiteľmi DPH." ? t(invoice.note) : invoice.note)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 totals.frame(width: 320)
             }
@@ -275,12 +288,12 @@ struct InvoicePaper: View {
             if invoice.supplier.vatPayer {
                 totalLine("Základ dane", invoice.net)
                 ForEach(Array(Set(invoice.items.map(\.vatRate))).sorted(), id: \.self) { rate in
-                    totalLine("DPH \(Format.number(rate)) %", invoice.items.filter { $0.vatRate == rate }.reduce(Decimal.zero) { $0 + $1.vat(enabled: true) })
+                    totalLine("\(t("DPH")) \(Format.number(rate)) %", invoice.items.filter { $0.vatRate == rate }.reduce(Decimal.zero) { $0 + $1.vat(enabled: true) })
                 }
             }
             totalLine("Celková suma", invoice.total, strong: true)
             HStack {
-                Text("Uhradené").font(.system(size: 13, design: mono ? .monospaced : .default))
+                Text(t("Uhradené")).font(.system(size: 13, design: mono ? .monospaced : .default))
                 Spacer()
                 PaperNumber(title: "Uhradené", value: $draft.invoice.paid, key: "paid").frame(width: 120)
                 Text(invoice.currency).font(.system(size: 12, design: mono ? .monospaced : .default)).foregroundStyle(.secondary)
@@ -293,7 +306,7 @@ struct InvoicePaper: View {
             if invoice.overpayment > 0 { totalLine("Preplatok", invoice.overpayment) }
             if let data = invoice.signature, let signature = NSImage(data: data) {
                 VStack(alignment: .trailing, spacing: 7) {
-                    Text("Podpis a pečiatka").font(.system(size: 10, design: mono ? .monospaced : .default)).foregroundStyle(.secondary)
+                    Text(t("Podpis a pečiatka")).font(.system(size: 10, design: mono ? .monospaced : .default)).foregroundStyle(.secondary)
                     Image(nsImage: signature).resizable().scaledToFit().frame(width: 238, height: 87)
                 }.frame(maxWidth: .infinity, alignment: .trailing).padding(.top, 8)
             }
@@ -302,7 +315,7 @@ struct InvoicePaper: View {
 
     private func totalLine(_ title: String, _ value: Decimal, strong: Bool = false, color: Color = .primary, highlighted: Bool = false) -> some View {
         HStack {
-            PaperText(title, size: strong ? 14 : 13, weight: strong ? .semibold : .regular)
+            PaperText(t(title), size: strong ? 14 : 13, weight: strong ? .semibold : .regular)
             Spacer(minLength: 4)
             PaperText(Format.money(value, currency: invoice.currency), size: strong ? 17 : 13, weight: strong ? .semibold : .regular, monospaced: true)
                 .foregroundStyle(color).lineLimit(1).minimumScaleFactor(0.6)
@@ -317,7 +330,7 @@ struct InvoicePaper: View {
         let color = store.database.settings.invoiceAccent
         return GeometryReader { proxy in
             let columns = InvoicePaymentBand.columns(for: invoice, width: proxy.size.width, inset: 16,
-                                                     labelSize: 10, valueSize: 13)
+                                                     labelSize: 10, valueSize: 13, localized: true)
             ZStack(alignment: .topLeading) {
                 ForEach(InvoicePaymentBand.dividerPositions(columns), id: \.self) { x in
                     Rectangle().fill(.white).frame(width: 1, height: proxy.size.height).offset(x: x - 0.5)
@@ -335,7 +348,7 @@ struct InvoicePaper: View {
 
     private func bandValue(_ title: String, _ value: String, monospaced: Bool = true) -> some View {
         VStack(alignment: .leading, spacing: 11) {
-            Text(title).font(.system(size: 10, design: mono ? .monospaced : .default)).lineLimit(1).minimumScaleFactor(0.5)
+            Text(t(title)).font(.system(size: 10, design: mono ? .monospaced : .default)).lineLimit(1).minimumScaleFactor(0.5)
             PaperText(value, size: 13, weight: .semibold, monospaced: monospaced)
                 .lineLimit(1).minimumScaleFactor(0.5)
         }.frame(maxWidth: .infinity, alignment: .leading)
@@ -343,6 +356,8 @@ struct InvoicePaper: View {
 }
 
 private struct PaperCompany: View {
+    @Environment(\.invoicePaperLanguage) private var language
+    private func t(_ value: String) -> String { language.text(value) }
     @Environment(\.invoiceMonospaced) private var mono
     @Binding var company: Company
     let title: String?
@@ -354,7 +369,7 @@ private struct PaperCompany: View {
         VStack(alignment: .leading, spacing: compact ? 5 : 7) {
             HStack(spacing: 6) {
                 if let title {
-                    Text(title).font(.system(size: 11, weight: .semibold, design: mono ? .monospaced : .default))
+                    Text(t(title)).font(.system(size: 11, weight: .semibold, design: mono ? .monospaced : .default))
                         .foregroundStyle(accent)
                 }
                 Button { details.toggle() } label: {
@@ -384,13 +399,15 @@ private struct PaperCompany: View {
     }
     private func identifier(_ title: String, text: Binding<String>) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 6) {
-            Text(title + ":").font(.system(size: 12, design: mono ? .monospaced : .default)).foregroundStyle(.secondary)
+            Text(t(title) + ":").font(.system(size: 12, design: mono ? .monospaced : .default)).foregroundStyle(.secondary)
             PaperField(title, text: text, size: 12, numeric: true, color: .secondary, placeholder: "—")
         }
     }
 }
 
 private struct PaperItem: View {
+    @Environment(\.invoicePaperLanguage) private var language
+    private func t(_ value: String) -> String { language.text(value) }
     @Environment(\.invoiceMonospaced) private var mono
     @EnvironmentObject private var draft: InvoiceDraft
     @Binding var item: InvoiceItem
@@ -412,7 +429,7 @@ private struct PaperItem: View {
                     }
                 }.frame(maxWidth: .infinity)
                 number("Množstvo", $item.quantity, "q").frame(width: 52)
-                PaperField("Jednotka", text: $item.unit, alignment: .trailing).frame(width: 56)
+                PaperField("Jednotka", text: $item.unit, alignment: .trailing, displayValue: t(item.unit)).frame(width: 56)
                 number("Cena / MJ", $item.unitPrice, "p").frame(width: 90)
                 PaperText(Format.money(item.total(vatEnabled: vatPayer), currency: currency), size: 13, weight: .medium, monospaced: true)
                     .lineLimit(1).minimumScaleFactor(0.6).frame(width: 110, alignment: .trailing).padding(.top, 3)
@@ -420,11 +437,11 @@ private struct PaperItem: View {
             if showDiscount || item.discount > 0 || vatPayer || draft.numericInputs["d" + item.id.uuidString] != nil {
                 HStack(spacing: 8) {
                     if showDiscount || item.discount > 0 || draft.numericInputs["d" + item.id.uuidString] != nil {
-                        Text("Zľava %").font(.system(size: 12, design: mono ? .monospaced : .default)).foregroundStyle(.secondary)
+                        Text(t("Zľava") + " %").font(.system(size: 12, design: mono ? .monospaced : .default)).foregroundStyle(.secondary)
                         number("Zľava %", $item.discount, "d").frame(width: 60)
                     }
                     if vatPayer {
-                        Text("DPH %").font(.system(size: 12, design: mono ? .monospaced : .default)).foregroundStyle(.secondary)
+                        Text(t("DPH") + " %").font(.system(size: 12, design: mono ? .monospaced : .default)).foregroundStyle(.secondary)
                         number("DPH %", $item.vatRate, "v").frame(width: 60)
                     }
                     Spacer()
@@ -453,6 +470,8 @@ private struct PaperItem: View {
 }
 
 struct PaperField: View {
+    @Environment(\.invoicePaperLanguage) private var language
+    private func t(_ value: String) -> String { language.text(value) }
     @Environment(\.invoiceMonospaced) private var mono
     @Environment(\.invoiceNumericMonospaced) private var numericMono
     let title: String
@@ -464,16 +483,18 @@ struct PaperField: View {
     var alignment: TextAlignment = .leading
     var outlined = false
     var placeholder: String?
+    var displayValue: String?
     @State private var hovering = false
     @FocusState private var focused: Bool
 
     init(_ title: String, text: Binding<String>, size: CGFloat = 13, weight: NSFont.Weight = .regular,
          numeric: Bool = false, color: Color = .primary, alignment: TextAlignment = .leading, outlined: Bool = false,
-         placeholder: String? = nil) {
+         placeholder: String? = nil, displayValue: String? = nil) {
         self.title = title; self._text = text; self.size = size; self.weight = weight
         self.numeric = numeric; self.color = color; self.alignment = alignment
         self.outlined = outlined
         self.placeholder = placeholder
+        self.displayValue = displayValue
     }
 
     var body: some View {
@@ -484,7 +505,7 @@ struct PaperField: View {
             .foregroundStyle(focused ? color : .clear)
             .overlay(alignment: alignment == .trailing ? .topTrailing : .topLeading) {
                 if !focused {
-                    PaperText(text.isEmpty ? (placeholder ?? title) : text, size: size, weight: weight, monospaced: numeric)
+                    PaperText(text.isEmpty ? (placeholder ?? t(title)) : (displayValue ?? text), size: size, weight: weight, monospaced: numeric)
                         .foregroundStyle(text.isEmpty ? .secondary : color).multilineTextAlignment(alignment)
                         .allowsHitTesting(false).accessibilityHidden(true)
                 }
@@ -497,7 +518,7 @@ struct PaperField: View {
             .overlay(alignment: .bottom) {
                 if !outlined { Rectangle().fill(Color.accent.opacity(focused ? 0.7 : hovering || (text.isEmpty && placeholder == nil) ? 0.25 : 0)).frame(height: 1) }
             }
-            .onHover { hovering = $0 }.help(title).accessibilityLabel(title)
+            .onHover { hovering = $0 }.help(t(title)).accessibilityLabel(t(title))
             .background(DismissEditingOnOutsideClick(isEditing: focused) { focused = false })
     }
 }

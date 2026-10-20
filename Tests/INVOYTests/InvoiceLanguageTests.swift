@@ -14,7 +14,7 @@ final class InvoiceLanguageTests: XCTestCase {
         invoice.language = .en
         let draft = InvoiceDraft(invoice, store: store)
         let host = NSHostingView(rootView: InvoiceEditor(draft: draft, onDuplicate: {}, onDelete: {})
-            .environmentObject(store).frame(width: 1000, height: 900))
+            .environmentObject(store).environment(\.colorScheme, .light).frame(width: 1000, height: 900).background(InvoyBrand.canvas))
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1000, height: 900),
                               styleMask: [.borderless], backing: .buffered, defer: false)
         window.contentView = host

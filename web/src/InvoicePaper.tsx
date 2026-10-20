@@ -71,6 +71,7 @@ function Inline({
   numeric = false,
   multiline = false,
   placeholder,
+  displayValue,
 }: {
   label: string;
   value: string;
@@ -78,13 +79,18 @@ function Inline({
   numeric?: boolean;
   multiline?: boolean;
   placeholder?: string;
+  displayValue?: string;
 }) {
-  if (!onChange) return <span className={numeric ? 'numeric' : ''}>{value}</span>;
+  const [focused, setFocused] = useState(false);
+  const shown = !focused && displayValue !== undefined ? displayValue : value;
+  if (!onChange) return <span className={numeric ? 'numeric' : ''}>{displayValue ?? value}</span>;
   return multiline ? (
     <textarea
       aria-label={label}
       className="paper-inline"
-      value={value}
+      value={shown}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
       rows={Math.max(1, value.split('\n').length)}
       onChange={(e) => onChange(e.target.value)}
       onInput={(e) => {
@@ -102,7 +108,9 @@ function Inline({
     <input
       aria-label={label}
       className={'paper-inline ' + (numeric ? 'numeric' : '')}
-      value={value}
+      value={shown}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
       placeholder={placeholder ?? label.split(' – ').at(-1)}
       inputMode={numeric ? 'decimal' : undefined}
       onChange={(e) => onChange(e.target.value)}
@@ -112,6 +120,7 @@ function Inline({
 function Party({
   value,
   title,
+  supplier = false,
   onChange,
   profile,
   t,
@@ -119,13 +128,14 @@ function Party({
   t: (value: string) => string;
   value: Company;
   title: string;
+  supplier?: boolean;
   onChange?: (v: Company) => void;
   profile?: Profile;
 }) {
   const [details, setDetails] = useState(false);
   const field = (key: keyof Company, label: string, numeric = false) => (
     <Inline
-      label={title + ' – ' + label}
+      label={title + ' – ' + t(label)}
       value={String(value[key] ?? '')}
       numeric={numeric}
       multiline={['name', 'street', 'city'].includes(key)}
@@ -140,8 +150,8 @@ function Party({
         {onChange && (
           <span className="party-controls">
             <button
-              data-tooltip={'Nastavenia ' + (title === 'DODÁVATEĽ' ? 'dodávateľa' : 'odberateľa')}
-              aria-label={'Nastavenia ' + (title === 'DODÁVATEĽ' ? 'dodávateľa' : 'odberateľa')}
+              data-tooltip={'Nastavenia ' + (supplier ? 'dodávateľa' : 'odberateľa')}
+              aria-label={'Nastavenia ' + (supplier ? 'dodávateľa' : 'odberateľa')}
               onClick={() => setDetails(true)}
             >
               <MoreHorizontal size={15} />
@@ -185,10 +195,7 @@ function Party({
         )}
       </div>
       {details && (
-        <Modal
-          title={title === 'DODÁVATEĽ' ? 'Dodávateľ' : 'Odberateľ'}
-          onClose={() => setDetails(false)}
-        >
+        <Modal title={supplier ? 'Dodávateľ' : 'Odberateľ'} onClose={() => setDetails(false)}>
           <CompanyFields value={value} onChange={onChange!} />
           <button className="button" onClick={() => setDetails(false)}>
             Hotovo
@@ -208,7 +215,7 @@ export function InvoicePaper({
   templateName?: string;
   edit?: Edit;
 }) {
-  const t = (value: string) => invoiceText(edit ? 'sk' : invoice.language, value);
+  const t = (value: string) => invoiceText(invoice.language, value);
   const sum = totals(invoice),
     manolo = theme.layout === 'manoloBay',
     mono = theme.layout === 'mono' || manolo;
@@ -276,9 +283,10 @@ export function InvoicePaper({
     multiline = false,
   ) => (
     <Inline
-      label={label}
-      value={
-        key === 'note' && !edit && invoice.note === 'Nie sme platiteľmi DPH.'
+      label={t(label)}
+      value={invoice[key] ?? ''}
+      displayValue={
+        key === 'note' && invoice.note === 'Nie sme platiteľmi DPH.'
           ? t(invoice.note)
           : (invoice[key] ?? '')
       }
@@ -341,6 +349,7 @@ export function InvoicePaper({
             value={invoice.supplier}
             t={t}
             title={t('DODÁVATEĽ')}
+            supplier
             onChange={edit ? (supplier) => edit.update({ supplier }) : undefined}
           />
           <Party
@@ -353,7 +362,7 @@ export function InvoicePaper({
         </div>
         <div className="original-registration">
           <Inline
-            label="Zápis v registri"
+            label={t('Zápis v registri')}
             multiline
             value={invoice.supplier.registration}
             onChange={
@@ -393,7 +402,9 @@ export function InvoicePaper({
                 }
               >
                 {['', 'Bankový prevod', 'Hotovosť', 'Karta', 'Dobierka'].map((v) => (
-                  <option key={v}>{v}</option>
+                  <option key={v} value={v}>
+                    {t(v)}
+                  </option>
                 ))}
               </BrandSelect>
             ) : (
@@ -509,7 +520,7 @@ export function InvoicePaper({
                   <td>
                     <strong>
                       <Inline
-                        label="Názov položky"
+                        label={t('Názov položky')}
                         value={item.name}
                         onChange={edit ? (v) => change('name', v) : undefined}
                         multiline
@@ -518,7 +529,7 @@ export function InvoicePaper({
                     {(item.detail || edit) && (
                       <div className="item-detail">
                         <Inline
-                          label="Podrobný popis"
+                          label={t('Podrobný popis')}
                           value={item.detail}
                           onChange={edit ? (v) => change('detail', v) : undefined}
                           multiline
@@ -533,7 +544,7 @@ export function InvoicePaper({
                   </td>
                   <td>
                     <Inline
-                      label="Množstvo"
+                      label={t('Množstvo')}
                       value={item.quantity}
                       numeric
                       onChange={edit ? (v) => change('quantity', v) : undefined}
@@ -541,14 +552,15 @@ export function InvoicePaper({
                   </td>
                   <td>
                     <Inline
-                      label="Jednotka"
-                      value={edit ? item.unit : t(item.unit)}
+                      label={t('Jednotka')}
+                      value={item.unit}
+                      displayValue={t(item.unit)}
                       onChange={edit ? (v) => change('unit', v) : undefined}
                     />
                   </td>
                   <td>
                     <Inline
-                      label="Cena / MJ"
+                      label={t('Cena / MJ')}
                       value={edit ? item.unitPrice : money(item.unitPrice, invoice.currency)}
                       numeric
                       onChange={edit ? (v) => change('unitPrice', v) : undefined}
@@ -694,7 +706,7 @@ export function InvoicePaper({
                   <span className="footer-issued-by">
                     {edit && (
                       <span className="footer-field-size" aria-hidden="true">
-                        {invoice.issuedBy || 'Vystavil'}
+                        {invoice.issuedBy || t('Vystavil')}
                       </span>
                     )}
                     {field('issuedBy', 'Vystavil')}

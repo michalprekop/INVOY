@@ -1,6 +1,17 @@
 import type { Invoice } from './model';
 
 const english: Record<string, string> = {
+  'Názov / meno': 'Company / name',
+  'Ulica a číslo': 'Street address',
+  PSČ: 'Postal code',
+  Mesto: 'City',
+  Krajina: 'Country',
+  'Zápis v registri': 'Company registration',
+  'Názov položky': 'Item name',
+  'Podrobný popis': 'Description',
+  Množstvo: 'Quantity',
+  Jednotka: 'Unit',
+
   FAKTÚRA: 'INVOICE',
   Faktúra: 'Invoice',
   'Číslo faktúry': 'Invoice number',

@@ -48,7 +48,7 @@ struct ManoloPaymentSummary: View {
     var body: some View {
         GeometryReader { proxy in
             let columns = ManoloPaymentColumns.make(invoice, width: proxy.size.width,
-                                                     labelSize: 12, valueSize: 15)
+                                                     labelSize: 12, valueSize: 15, localized: true)
             ZStack(alignment: .topLeading) {
                 ForEach(columns.indices, id: \.self) { index in
                     let column = columns[index]
