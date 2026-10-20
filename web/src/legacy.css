@@ -654,6 +654,17 @@
   table-layout: fixed;
   font-size: 13px;
 }
+/* Body cells match the payment-detail typeface, one point smaller. */
+.original-items tbody {
+  font-size: calc(12px - 1pt);
+  font-weight: 400;
+}
+.original-paper .original-items tbody td,
+.original-items tbody tr td :is(strong, .numeric, .paper-inline, .item-detail, .item-discount) {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 400;
+}
 .mono .original-items {
   border-top: 10px solid #000;
 }

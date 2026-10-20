@@ -185,6 +185,7 @@ enum MonoInvoicePDF {
                      (t("Forma úhrady"), t(invoice.paymentMethod)), (t("Objednávka"), invoice.orderNumber)]
         y = max(detailRows(bank, x: left, top: y), detailRows(dates, x: 310, top: y)) + (manolo && compact ? 9 : 17)
         ensure(75); tableHeader()
+        let itemFontSize: CGFloat = 7 // Payment details use 8 pt.
         for item in invoice.items {
             let description = [item.name, item.detail, item.discount > 0 ? "\(t("Zľava")) \(Format.number(item.discount)) %" : "",
                                invoice.supplier.vatPayer ? "\(t("DPH")) \(Format.number(item.vatRate)) %" : ""].filter { !$0.isEmpty }.joined(separator: "\n")
@@ -194,14 +195,14 @@ enum MonoInvoicePDF {
             var sourceOffset = 0
             let values = ["\(Format.number(item.quantity)) \(t(item.unit))", Format.money(item.unitPrice, currency: invoice.currency),
                           Format.money(item.total(vatEnabled: invoice.supplier.vatPayer), currency: invoice.currency)]
-            for (index, chunk) in chunks(description, w: 246, maxHeight: 270).enumerated() {
-                let valueHeight = index == 0 ? zip(values, [CGFloat(62), 92, 101]).map { height($0.0, $0.1) }.max() ?? 0 : 0
-                let rowHeight = max(32, max(height(chunk, 246), valueHeight) + (manolo && compact ? 14 : 18))
+            for (index, chunk) in chunks(description, w: 246, maxHeight: 270, size: itemFontSize).enumerated() {
+                let valueHeight = index == 0 ? zip(values, [CGFloat(62), 92, 101]).map { height($0.0, $0.1, size: itemFontSize) }.max() ?? 0 : 0
+                let rowHeight = max(32, max(height(chunk, 246, size: itemFontSize), valueHeight) + (manolo && compact ? 14 : 18))
                 if y + rowHeight > bottom { continued(); tableHeader() }
                 // Locate each page fragment in order so only the item's detail stays muted,
                 // including continuations and descriptions repeating the item's name.
                 let fragmentRange = source.range(of: chunk, range: NSRange(location: sourceOffset, length: source.length - sourceOffset))
-                let styled = NSMutableAttributedString(attributedString: attributed(chunk, size: 8.5))
+                let styled = NSMutableAttributedString(attributedString: attributed(chunk, size: itemFontSize))
                 if fragmentRange.location != NSNotFound {
                     let detail = NSIntersectionRange(fragmentRange, detailRange)
                     if detail.length > 0 {
@@ -210,12 +211,12 @@ enum MonoInvoicePDF {
                     }
                     sourceOffset = NSMaxRange(fragmentRange)
                 }
-                styled.draw(with: NSRect(x: left, y: y + 9, width: 246, height: height(chunk, 246) + 2),
+                styled.draw(with: NSRect(x: left, y: y + 9, width: 246, height: height(chunk, 246, size: itemFontSize) + 2),
                             options: [.usesLineFragmentOrigin, .usesFontLeading])
                 if index == 0 {
-                    text(values[0], 290, y + 9, 62, alignment: .right)
-                    text(values[1], 361, y + 9, 92, alignment: .right)
-                    text(values[2], 462, y + 9, 101, weight: .medium, alignment: .right)
+                    text(values[0], 290, y + 9, 62, size: itemFontSize, alignment: .right)
+                    text(values[1], 361, y + 9, 92, size: itemFontSize, alignment: .right)
+                    text(values[2], 462, y + 9, 101, size: itemFontSize, alignment: .right)
                 }
                 y += rowHeight; rule(y)
             }

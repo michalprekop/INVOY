@@ -144,6 +144,7 @@ enum InvoicePDF {
         y += text(symbols, left, y + 3, width, size: 8.5, weight: .medium) + 17
         if y > 675 { continued() }
         tableHeader()
+        let itemFontSize: CGFloat = 7.5 // Payment details use 8.5 pt.
         for item in invoice.items {
             let extra = [item.detail, item.discount > 0 ? "\(t("Zľava")) \(Format.number(item.discount)) %" : "", invoice.supplier.vatPayer ? "\(t("DPH")) \(Format.number(item.vatRate)) %" : ""].filter { !$0.isEmpty }.joined(separator: "\n")
             // Split unusually long descriptions into page-sized paragraphs without dropping text.
@@ -152,19 +153,19 @@ enum InvoicePDF {
             var chunk = ""
             for word in full.components(separatedBy: .whitespacesAndNewlines).filter({ !$0.isEmpty }) {
                 let candidate = chunk.isEmpty ? word : chunk + " " + word
-                if height(candidate, width: 239) > 330, !chunk.isEmpty { chunks.append(chunk); chunk = word }
+                if height(candidate, width: 239, size: itemFontSize) > 330, !chunk.isEmpty { chunks.append(chunk); chunk = word }
                 else { chunk = candidate }
             }
             if !chunk.isEmpty { chunks.append(chunk) }
             if chunks.isEmpty { chunks = [" "] }
             for (part, description) in chunks.enumerated() {
-                let rowHeight = max(35, height(description, width: 239) + 18)
+                let rowHeight = max(35, height(description, width: 239, size: itemFontSize) + 18)
                 if y + rowHeight > 754 { continued(); tableHeader() }
-                _ = text(description, left + 9, y + 9, 239, size: 9)
+                _ = text(description, left + 9, y + 9, 239, size: itemFontSize)
                 if part == 0 {
-                    _ = text("\(Format.number(item.quantity)) \(t(item.unit))", 293, y + 9, 65, size: 9, alignment: .right, monospaced: true)
-                    _ = text(Format.money(item.unitPrice, currency: invoice.currency), 365, y + 9, 79, size: 9, alignment: .right, monospaced: true)
-                    _ = text(Format.money(item.total(vatEnabled: invoice.supplier.vatPayer), currency: invoice.currency), 449, y + 9, 98, size: 9, weight: .medium, alignment: .right, monospaced: true)
+                    _ = text("\(Format.number(item.quantity)) \(t(item.unit))", 293, y + 9, 65, size: itemFontSize, alignment: .right)
+                    _ = text(Format.money(item.unitPrice, currency: invoice.currency), 365, y + 9, 79, size: itemFontSize, alignment: .right)
+                    _ = text(Format.money(item.total(vatEnabled: invoice.supplier.vatPayer), currency: invoice.currency), 449, y + 9, 98, size: itemFontSize, alignment: .right)
                 }
                 y += rowHeight
                 line(y)

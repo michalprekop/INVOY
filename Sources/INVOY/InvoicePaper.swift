@@ -423,31 +423,32 @@ private struct PaperItem: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .top, spacing: 10) {
                 VStack(alignment: .leading, spacing: 7) {
-                    PaperField("Názov položky", text: $item.name)
+                    PaperField("Názov položky", text: $item.name, size: 11)
                     if hasDetail {
-                        PaperField("Podrobný popis", text: $item.detail, size: 12, color: .secondary)
+                        PaperField("Podrobný popis", text: $item.detail, size: 11, color: .secondary)
                     }
                 }.frame(maxWidth: .infinity)
                 number("Množstvo", $item.quantity, "q").frame(width: 52)
-                PaperField("Jednotka", text: $item.unit, alignment: .trailing, displayValue: t(item.unit)).frame(width: 56)
+                PaperField("Jednotka", text: $item.unit, size: 11, alignment: .trailing, displayValue: t(item.unit)).frame(width: 56)
                 number("Cena / MJ", $item.unitPrice, "p").frame(width: 90)
-                PaperText(Format.money(item.total(vatEnabled: vatPayer), currency: currency), size: 13, weight: .medium, monospaced: true)
+                PaperText(Format.money(item.total(vatEnabled: vatPayer), currency: currency), size: 11, weight: .regular, monospaced: mono)
                     .lineLimit(1).minimumScaleFactor(0.6).frame(width: 110, alignment: .trailing).padding(.top, 3)
             }
             if showDiscount || item.discount > 0 || vatPayer || draft.numericInputs["d" + item.id.uuidString] != nil {
                 HStack(spacing: 8) {
                     if showDiscount || item.discount > 0 || draft.numericInputs["d" + item.id.uuidString] != nil {
-                        Text(t("Zľava") + " %").font(.system(size: 12, design: mono ? .monospaced : .default)).foregroundStyle(.secondary)
+                        Text(t("Zľava") + " %").font(.system(size: 11, design: mono ? .monospaced : .default)).foregroundStyle(.secondary)
                         number("Zľava %", $item.discount, "d").frame(width: 60)
                     }
                     if vatPayer {
-                        Text(t("DPH") + " %").font(.system(size: 12, design: mono ? .monospaced : .default)).foregroundStyle(.secondary)
+                        Text(t("DPH") + " %").font(.system(size: 11, design: mono ? .monospaced : .default)).foregroundStyle(.secondary)
                         number("DPH %", $item.vatRate, "v").frame(width: 60)
                     }
                     Spacer()
                 }
             }
         }.padding(12)
+            .environment(\.invoiceNumericMonospaced, mono)
             .contentShape(Rectangle())
             .contextMenu {
                 Button(hasDetail ? "Odobrať podrobný popis" : "Pridať podrobný popis") {
@@ -465,7 +466,7 @@ private struct PaperItem: View {
     }
 
     private func number(_ title: String, _ binding: Binding<Decimal>, _ prefix: String) -> some View {
-        PaperNumber(title: title, value: binding, key: prefix + item.id.uuidString)
+        PaperNumber(title: title, value: binding, key: prefix + item.id.uuidString, size: 11)
     }
 }
 
@@ -528,13 +529,14 @@ private struct PaperNumber: View {
     let title: String
     @Binding var value: Decimal
     let key: String
+    var size: CGFloat = 13
     var outlined = false
     private var input: Binding<String> {
         Binding(get: { draft.numericInputs[key] ?? Format.number(value) },
                 set: { draft.setNumber($0, key: key, value: $value) })
     }
     var body: some View {
-        PaperField(title, text: input, numeric: true, alignment: .trailing, outlined: outlined)
+        PaperField(title, text: input, size: size, numeric: true, alignment: .trailing, outlined: outlined)
             .overlay(alignment: .bottom) { if draft.invalid.contains(key) { Color.red.frame(height: 1) } }
     }
 }
