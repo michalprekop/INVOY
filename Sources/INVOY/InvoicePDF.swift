@@ -11,6 +11,7 @@ enum InvoicePDF {
 
     static func render(_ invoice: Invoice, accentColor: InvoiceAccent = .standard,
                        defaultTemplate: InvoiceTemplate = .boringDefault01, pageCount: Int? = nil) -> Data {
+        let t = invoice.documentLanguage.text
         let template = invoice.resolvedTemplate(default: defaultTemplate)
         if template == .mono01 || template == .manoloBay {
             return MonoInvoicePDF.render(invoice, template: template)
@@ -20,7 +21,7 @@ enum InvoicePDF {
         let output = NSMutableData()
         var mediaBox = CGRect(x: 0, y: 0, width: paperWidth, height: paperHeight)
         guard let consumer = CGDataConsumer(data: output as CFMutableData),
-              let context = CGContext(consumer: consumer, mediaBox: &mediaBox, [kCGPDFContextTitle as String: "Faktúra \(invoice.number)", kCGPDFContextAuthor as String: invoice.supplier.name] as CFDictionary) else { return Data() }
+              let context = CGContext(consumer: consumer, mediaBox: &mediaBox, [kCGPDFContextTitle as String: "\(t("Faktúra")) \(invoice.number)", kCGPDFContextAuthor as String: invoice.supplier.name] as CFDictionary) else { return Data() }
         let left: CGFloat = 38
         let width: CGFloat = paperWidth - 76
         var page = 0
@@ -76,7 +77,7 @@ enum InvoicePDF {
             let contacts = [invoice.supplier.website, invoice.supplier.email, invoice.supplier.phone].filter { !$0.isEmpty }
             let footerTop: CGFloat = invoice.logo == nil ? 784 : (contacts.count > 2 ? 760 : 770)
             line(footerTop)
-            InvoiceFooterLayout.draw(issuer: invoice.issuedBy.isEmpty ? "" : "Vystavil: \(invoice.issuedBy)",
+            InvoiceFooterLayout.draw(issuer: invoice.issuedBy.isEmpty ? "" : "\(t("Vystavil")): \(invoice.issuedBy)",
                                      contacts: contacts, x: left, top: footerTop + 11, width: width, size: 7, color: muted)
             let logoSide: CGFloat = 67 * 0.4
             picture(invoice.logo, rect: NSRect(x: (paperWidth - logoSide) / 2, y: paperHeight - 12 - logoSide,
@@ -88,16 +89,16 @@ enum InvoicePDF {
         }
         func continued() {
             endPage(); beginPage()
-            _ = text("Faktúra \(invoice.number)", left, y, width, size: 15, weight: .semibold)
+            _ = text("\(t("Faktúra")) \(invoice.number)", left, y, width, size: 15, weight: .semibold)
             y += 37
         }
         func tableHeader() {
             NSColor(calibratedWhite: 0.96, alpha: 1).setFill()
             NSRect(x: left, y: y, width: width, height: 27).fill()
-            _ = text("POLOŽKA", left + 9, y + 8, 240, size: 7, weight: .semibold, color: muted)
-            _ = text("MNOŽSTVO", 295, y + 8, 63, size: 7, weight: .semibold, color: muted, alignment: .right)
-            _ = text("CENA / MJ", 370, y + 8, 74, size: 7, weight: .semibold, color: muted, alignment: .right)
-            _ = text(invoice.supplier.vatPayer ? "SPOLU S DPH" : "SPOLU", 459, y + 8, 88, size: 7, weight: .semibold, color: muted, alignment: .right)
+            _ = text(t("POLOŽKA"), left + 9, y + 8, 240, size: 7, weight: .semibold, color: muted)
+            _ = text(t("MNOŽSTVO"), 295, y + 8, 63, size: 7, weight: .semibold, color: muted, alignment: .right)
+            _ = text(t("CENA / MJ"), 370, y + 8, 74, size: 7, weight: .semibold, color: muted, alignment: .right)
+            _ = text(invoice.supplier.vatPayer ? t("SPOLU S DPH") : t("SPOLU"), 459, y + 8, 88, size: 7, weight: .semibold, color: muted, alignment: .right)
             y += 27
         }
         func company(_ label: String, _ company: Company, x: CGFloat, top: CGFloat, w: CGFloat) -> CGFloat {
@@ -105,23 +106,23 @@ enum InvoicePDF {
             var cursor = top + 16
             cursor += text(company.name, x, cursor, w, size: 13, weight: .semibold) + 5
             cursor += text(company.address, x, cursor, w, size: 9) + 8
-            let ids = [("IČO", company.companyID), ("DIČ", company.taxID), ("IČ DPH", company.vatID)].filter { !$0.1.isEmpty }.map { "\($0.0): \($0.1)" }.joined(separator: "\n")
+            let ids = [(t("IČO"), company.companyID), (t("DIČ"), company.taxID), (t("IČ DPH"), company.vatID)].filter { !$0.1.isEmpty }.map { "\($0.0): \($0.1)" }.joined(separator: "\n")
             cursor += text(ids, x, cursor, w, size: 8.5, color: muted)
             return cursor
         }
 
         beginPage()
         let numberLeft = left + width - 400
-        _ = text("FAKTÚRA", left, 64, numberLeft - left - 12, size: 10, weight: .semibold, color: accent)
+        _ = text(t("FAKTÚRA"), left, 64, numberLeft - left - 12, size: 10, weight: .semibold, color: accent)
         let numberHeight = text(invoice.number, numberLeft, 56.5, 400, size: 21.75, weight: .semibold, alignment: .right, monospaced: true)
         y = max(112, 62 + numberHeight)
         line(y - 16)
-        let supplierBottom = company("DODÁVATEĽ", invoice.supplier, x: left, top: y, w: 237)
-        let customerBottom = company("ODBERATEĽ", invoice.customer, x: 317, top: y, w: 240)
+        let supplierBottom = company(t("DODÁVATEĽ"), invoice.supplier, x: left, top: y, w: 237)
+        let customerBottom = company(t("ODBERATEĽ"), invoice.customer, x: 317, top: y, w: 240)
         y = max(supplierBottom, customerBottom) + 11
         if !invoice.supplier.registration.isEmpty { y += text(invoice.supplier.registration, left, y, width, size: 7, color: muted) + 10 }
         line(y); y += 12
-        let dates: [(String, String, Bool)] = [("Dátum vystavenia", Format.date(invoice.issueDate), true), ("Dátum splatnosti", Format.date(invoice.dueDate), true), ("Dátum dodania", invoice.deliveryDate.map(Format.date) ?? "", true), ("Forma úhrady", invoice.paymentMethod, false), ("Objednávka", invoice.orderNumber, true)].filter { !$0.1.isEmpty }
+        let dates: [(String, String, Bool)] = [(t("Dátum vystavenia"), Format.date(invoice.issueDate), true), (t("Dátum splatnosti"), Format.date(invoice.dueDate), true), (t("Dátum dodania"), invoice.deliveryDate.map(Format.date) ?? "", true), (t("Forma úhrady"), t(invoice.paymentMethod), false), (t("Objednávka"), invoice.orderNumber, true)].filter { !$0.1.isEmpty }
         let columns = min(4, dates.count)
         let cellWidth = width / CGFloat(columns)
         for rowStart in stride(from: 0, to: dates.count, by: columns) {
@@ -139,12 +140,12 @@ enum InvoicePDF {
             let bankText = Format.iban(account.iban) + (account.swift.isEmpty ? "" : "  /  \(account.swift)")
             y += text(bankText, left, y, width, size: 8.5) + 4
         }
-        let symbols = [("Variabilný symbol", invoice.variableSymbol), ("Konštantný symbol", invoice.constantSymbol), ("Špecifický symbol", invoice.specificSymbol)].filter { !$0.1.isEmpty }.map { "\($0.0): \($0.1)" }.joined(separator: "    ")
+        let symbols = [(t("Variabilný symbol"), invoice.variableSymbol), (t("Konštantný symbol"), invoice.constantSymbol), (t("Špecifický symbol"), invoice.specificSymbol)].filter { !$0.1.isEmpty }.map { "\($0.0): \($0.1)" }.joined(separator: "    ")
         y += text(symbols, left, y + 3, width, size: 8.5, weight: .medium) + 17
         if y > 675 { continued() }
         tableHeader()
         for item in invoice.items {
-            let extra = [item.detail, item.discount > 0 ? "Zľava \(Format.number(item.discount)) %" : "", invoice.supplier.vatPayer ? "DPH \(Format.number(item.vatRate)) %" : ""].filter { !$0.isEmpty }.joined(separator: "\n")
+            let extra = [item.detail, item.discount > 0 ? "\(t("Zľava")) \(Format.number(item.discount)) %" : "", invoice.supplier.vatPayer ? "\(t("DPH")) \(Format.number(item.vatRate)) %" : ""].filter { !$0.isEmpty }.joined(separator: "\n")
             // Split unusually long descriptions into page-sized paragraphs without dropping text.
             let full = item.name + (extra.isEmpty ? "" : "\n" + extra)
             var chunks: [String] = []
@@ -161,7 +162,7 @@ enum InvoicePDF {
                 if y + rowHeight > 754 { continued(); tableHeader() }
                 _ = text(description, left + 9, y + 9, 239, size: 9)
                 if part == 0 {
-                    _ = text("\(Format.number(item.quantity)) \(item.unit)", 293, y + 9, 65, size: 9, alignment: .right, monospaced: true)
+                    _ = text("\(Format.number(item.quantity)) \(t(item.unit))", 293, y + 9, 65, size: 9, alignment: .right, monospaced: true)
                     _ = text(Format.money(item.unitPrice, currency: invoice.currency), 365, y + 9, 79, size: 9, alignment: .right, monospaced: true)
                     _ = text(Format.money(item.total(vatEnabled: invoice.supplier.vatPayer), currency: invoice.currency), 449, y + 9, 98, size: 9, weight: .medium, alignment: .right, monospaced: true)
                 }
@@ -172,17 +173,17 @@ enum InvoicePDF {
         y += 14
         var summary: [(String, Decimal, Bool)] = []
         if invoice.supplier.vatPayer {
-            summary.append(("Základ dane", invoice.net, false))
+            summary.append((t("Základ dane"), invoice.net, false))
             let rates = Set(invoice.items.map(\.vatRate)).sorted()
             for rate in rates {
                 let tax = invoice.items.filter { $0.vatRate == rate }.reduce(Decimal.zero) { $0 + $1.vat(enabled: true) }
-                summary.append(("DPH \(Format.number(rate)) %", tax, false))
+                summary.append(("\(t("DPH")) \(Format.number(rate)) %", tax, false))
             }
         }
-        summary += [("Celková suma", invoice.total, true), ("Uhradené", invoice.paid, false), ("Suma na úhradu", invoice.remaining, true)]
-        if invoice.overpayment > 0 { summary.append(("Preplatok", invoice.overpayment, false)) }
+        summary += [(t("Celková suma"), invoice.total, true), (t("Uhradené"), invoice.paid, false), (t("Suma na úhradu"), invoice.remaining, true)]
+        if invoice.overpayment > 0 { summary.append((t("Preplatok"), invoice.overpayment, false)) }
         let summaryHeight = CGFloat(summary.count) * 22
-        let note = [invoice.note.isEmpty ? "" : "Poznámka: \(invoice.note)", paymentQRError ?? ""].filter { !$0.isEmpty }.joined(separator: "\n")
+        let note = [invoice.note.isEmpty ? "" : "\(t("Poznámka")): \((invoice.note == "Nie sme platiteľmi DPH." ? t(invoice.note) : invoice.note))", paymentQRError ?? ""].filter { !$0.isEmpty }.joined(separator: "\n")
         let noteHeight = note.isEmpty ? 0 : height(note, width: 231, size: 8)
         let shortNote = noteHeight < 160
         let signatureHeight: CGFloat = invoice.signature == nil ? 0 : 80
@@ -194,7 +195,7 @@ enum InvoicePDF {
         let totalsStart = y
         for row in summary {
             _ = text(row.0, 295, y + 3, 125, size: row.2 ? 10 : 9, weight: row.2 ? .semibold : .regular)
-            _ = text(Format.money(row.1, currency: invoice.currency), 418, y + 3, 129, size: row.2 ? 12 : 9, weight: row.2 ? .semibold : .regular, color: row.0 == "Suma na úhradu" ? accent : ink, alignment: .right, monospaced: true)
+            _ = text(Format.money(row.1, currency: invoice.currency), 418, y + 3, 129, size: row.2 ? 12 : 9, weight: row.2 ? .semibold : .regular, color: row.0 == t("Suma na úhradu") ? accent : ink, alignment: .right, monospaced: true)
             y += 22
         }
         var noteBottom = totalsStart
@@ -227,13 +228,13 @@ enum InvoicePDF {
         }
         y = closingTop
         if invoice.signature != nil {
-            _ = text("Podpis a pečiatka", 346, y, 201, size: 7, color: muted)
+            _ = text(t("Podpis a pečiatka"), 346, y, 201, size: 7, color: muted)
             picture(invoice.signature, rect: NSRect(x: 359, y: y + 12, width: 170, height: 62))
             y += signatureHeight
         }
         y = max(y, noteBottom)
         accentColor.nsColor.setFill(); NSRect(x: left, y: y, width: width, height: 58).fill()
-        let band = InvoicePaymentBand.columns(for: invoice, width: width, inset: 12, labelSize: 7, valueSize: 9.5)
+        let band = InvoicePaymentBand.columns(for: invoice, width: width, inset: 12, labelSize: 7, valueSize: 9.5, localized: true)
         NSColor.white.setFill()
         for x in InvoicePaymentBand.dividerPositions(band) {
             NSRect(x: left + x - 0.5, y: y, width: 1, height: 58).fill()

@@ -174,6 +174,7 @@ const invoiceBase = z
     variableSymbol: z.string().regex(/^\d{0,10}$/),
     constantSymbol: z.string().regex(/^\d{0,4}$/),
     specificSymbol: z.string().regex(/^\d{0,10}$/),
+    language: z.enum(['sk', 'en']).optional(),
     paymentMethod: z.enum(['', 'Bankový prevod', 'Hotovosť', 'Karta', 'Dobierka']),
     note: text(4000),
     issuedBy: text(),

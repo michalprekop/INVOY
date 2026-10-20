@@ -128,3 +128,22 @@ test('native writes enforce CSRF, grants and optimistic versions', async () => {
   assert.equal(mac.invoice.note, input.note);
   assert.equal(mac.version, 3);
 });
+
+test('invoice language persists from web through native edits and back', async () => {
+  const invoice = await h.invoice('alice');
+  invoice.number = 'LANG-2026001';
+  invoice.language = 'en';
+  const put = await h.request('alice', '/api/invoices/' + invoice.id, 'PUT', invoice);
+  assert.equal(put.status, 200, await put.clone().text());
+  const saved = (await (
+    await h.request('alice', '/api/invoices/' + invoice.id)
+  ).json()) as SavedInvoice;
+  assert.equal(saved.language, 'en');
+  const native = toNativeInvoice(saved);
+  assert.equal(native.language, 'en');
+  assert.equal(fromNativeInvoice(native, saved.version, saved.templateID).language, 'en');
+  native.language = 'sk';
+  assert.equal(fromNativeInvoice(native, saved.version, saved.templateID).language, 'sk');
+  delete native.language;
+  assert.equal(fromNativeInvoice(native, saved.version, saved.templateID).language, undefined);
+});

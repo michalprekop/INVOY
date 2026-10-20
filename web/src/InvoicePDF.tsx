@@ -1,3 +1,4 @@
+import { invoiceText } from '../shared/invoice-language';
 import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import html2canvas from 'html2canvas';
@@ -222,7 +223,7 @@ export function renderInvoiceThumbnail(invoice: SavedInvoice): Promise<string> {
 /** Render the saved snapshot offscreen, with A4 pages and a footer on each page. */
 export async function renderInvoicePDF(invoice: SavedInvoice): Promise<Blob> {
   return renderInvoicesPDF([invoice], {
-    title: `Faktúra ${invoice.number}`,
+    title: `${invoiceText(invoice.language, 'Faktúra')} ${invoice.number}`,
     author: invoice.supplier.name,
   });
 }

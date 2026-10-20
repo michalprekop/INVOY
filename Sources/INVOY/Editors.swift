@@ -133,6 +133,9 @@ struct InvoiceEditor: View {
         InvoiceTemplatePicker(draft: draft)
             .frame(width: 200)
             .accessibilityLabel("Šablóna faktúry")
+        BrandDropdown(title: "Jazyk faktúry", value: invoice.documentLanguage.rawValue.uppercased(), items: InvoiceLanguage.allCases.map { language in
+            BrandDropdownItem(title: language.rawValue.uppercased(), selected: invoice.documentLanguage == language) { draft.invoice.language = language }
+        }).frame(width: 72)
         IconButton(invoice.remaining > 0 ? "Pridať úhradu" : "Zmeniť na: Čaká na úhradu", "eurosign") {
             draft.invoice.paid = invoice.remaining > 0 ? invoice.total : 0
         }

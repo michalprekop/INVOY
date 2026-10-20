@@ -67,6 +67,7 @@ export const nativeInvoiceSchema = z
       )
       .max(150),
     currency: z.enum(['EUR', 'CZK', 'USD', 'GBP']),
+    language: z.enum(['sk', 'en']).optional(),
     paymentMethod: z.enum([
       '',
       'Bankový prevod',
@@ -235,6 +236,7 @@ export function toNativeInvoice(i: SavedInvoice): NativeInvoice {
     })),
     currency: i.currency,
     paid: Number(i.paid),
+    language: i.language,
     paymentMethod: i.paymentMethod === 'Karta' ? 'Platobná karta' : i.paymentMethod,
     paymentQRFormat: i.qrFormat,
     cloudStyle: { id: i.templateID, name: i.templateName, config: i.templateSnapshot },

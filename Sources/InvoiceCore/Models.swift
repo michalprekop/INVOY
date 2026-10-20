@@ -132,6 +132,8 @@ public struct Invoice: Codable, Identifiable, Equatable {
     public var items: [InvoiceItem] = [InvoiceItem()]
     public var currency = "EUR"
     public var paymentMethod = "Bankový prevod"
+    public var language: InvoiceLanguage? = nil
+    public var documentLanguage: InvoiceLanguage { language ?? .sk }
     public var paymentQRFormat: PaymentQRFormat? = nil
     public var templateOverride: InvoiceTemplate? = nil
     public var cloudStyle: CloudInvoiceStyle? = nil

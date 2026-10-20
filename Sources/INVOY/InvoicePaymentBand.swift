@@ -11,13 +11,14 @@ enum InvoicePaymentBand {
     }
 
     static func columns(for invoice: Invoice, width: CGFloat, inset: CGFloat,
-                        labelSize: CGFloat, valueSize: CGFloat) -> [Column] {
+                        labelSize: CGFloat, valueSize: CGFloat, localized: Bool = false) -> [Column] {
+        let t = (localized ? invoice.documentLanguage : .sk).text
         var columns = [
-            Column(title: "IBAN", value: invoice.account.map { Format.iban($0.iban) } ?? invoice.paymentMethod,
+            Column(title: "IBAN", value: invoice.account.map { Format.iban($0.iban) } ?? t(invoice.paymentMethod),
                    monospaced: invoice.account != nil),
-            Column(title: "Variabilný symbol", value: invoice.variableSymbol, monospaced: true),
-            Column(title: "Splatnosť", value: Format.date(invoice.dueDate), monospaced: true),
-            Column(title: "Na úhradu", value: Format.money(invoice.remaining, currency: invoice.currency), monospaced: true)
+            Column(title: t("Variabilný symbol"), value: invoice.variableSymbol, monospaced: true),
+            Column(title: t("Splatnosť"), value: Format.date(invoice.dueDate), monospaced: true),
+            Column(title: t("Na úhradu"), value: Format.money(invoice.remaining, currency: invoice.currency), monospaced: true)
         ]
         for index in columns.indices {
             let column = columns[index]

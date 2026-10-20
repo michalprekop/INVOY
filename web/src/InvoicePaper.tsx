@@ -1,3 +1,4 @@
+import { invoiceText } from '../shared/invoice-language';
 import { BrandSelect } from './BrandSelect';
 import { manoloBay } from '../shared/manolo-bay';
 import { A4Paper } from './A4Paper';
@@ -113,7 +114,9 @@ function Party({
   title,
   onChange,
   profile,
+  t,
 }: {
+  t: (value: string) => string;
   value: Company;
   title: string;
   onChange?: (v: Company) => void;
@@ -175,7 +178,7 @@ function Party({
           (k, i) =>
             (value[k] || (onChange && (k !== 'vatID' || value.vatPayer))) && (
               <div key={k}>
-                <span>{['IČO', 'DIČ', 'IČ DPH'][i]}:</span>
+                <span>{t(['IČO', 'DIČ', 'IČ DPH'][i])}:</span>
                 {field(k, ['IČO', 'DIČ', 'IČ DPH'][i], true)}
               </div>
             ),
@@ -205,6 +208,7 @@ export function InvoicePaper({
   templateName?: string;
   edit?: Edit;
 }) {
+  const t = (value: string) => invoiceText(edit ? 'sk' : invoice.language, value);
   const sum = totals(invoice),
     manolo = theme.layout === 'manoloBay',
     mono = theme.layout === 'mono' || manolo;
@@ -273,7 +277,11 @@ export function InvoicePaper({
   ) => (
     <Inline
       label={label}
-      value={invoice[key] ?? ''}
+      value={
+        key === 'note' && !edit && invoice.note === 'Nie sme platiteľmi DPH.'
+          ? t(invoice.note)
+          : (invoice[key] ?? '')
+      }
       onChange={edit ? (v) => edit.update({ [key]: numeric ? v.replace(',', '.') : v }) : undefined}
       numeric={numeric}
       multiline={multiline}
@@ -316,14 +324,14 @@ export function InvoicePaper({
           {mono ? (
             <>
               <div>
-                <small>Číslo faktúry</small>
+                <small>{t('Číslo faktúry')}</small>
                 <h1>{field('number', 'Číslo faktúry', true)}</h1>
               </div>
-              <b>FAKTÚRA</b>
+              <b>{t('FAKTÚRA')}</b>
             </>
           ) : (
             <>
-              <b>FAKTÚRA</b>
+              <b>{t('FAKTÚRA')}</b>
               <h1>{field('number', 'Číslo faktúry', true)}</h1>
             </>
           )}
@@ -331,12 +339,14 @@ export function InvoicePaper({
         <div className="original-parties">
           <Party
             value={invoice.supplier}
-            title="DODÁVATEĽ"
+            t={t}
+            title={t('DODÁVATEĽ')}
             onChange={edit ? (supplier) => edit.update({ supplier }) : undefined}
           />
           <Party
             value={invoice.customer}
-            title="ODBERATEĽ"
+            t={t}
+            title={t('ODBERATEĽ')}
             onChange={edit ? (customer) => edit.update({ customer }) : undefined}
             profile={edit?.profile}
           />
@@ -358,10 +368,10 @@ export function InvoicePaper({
             (key, i) =>
               (key !== 'deliveryDate' || invoice.deliveryDate) && (
                 <div key={key}>
-                  <small>{['Dátum vystavenia', 'Dátum splatnosti', 'Dátum dodania'][i]}</small>
+                  <small>{t(['Dátum vystavenia', 'Dátum splatnosti', 'Dátum dodania'][i])}</small>
                   {edit ? (
                     <input
-                      aria-label={['Dátum vystavenia', 'Dátum splatnosti', 'Dátum dodania'][i]}
+                      aria-label={t(['Dátum vystavenia', 'Dátum splatnosti', 'Dátum dodania'][i])}
                       type="date"
                       value={invoice[key] ?? ''}
                       onChange={(e) => edit.update({ [key]: e.target.value })}
@@ -373,7 +383,7 @@ export function InvoicePaper({
               ),
           )}
           <div>
-            <small>Forma úhrady</small>
+            <small>{t('Forma úhrady')}</small>
             {edit ? (
               <BrandSelect
                 aria-label="Forma úhrady"
@@ -387,7 +397,7 @@ export function InvoicePaper({
                 ))}
               </BrandSelect>
             ) : (
-              invoice.paymentMethod
+              t(invoice.paymentMethod)
             )}
           </div>
         </div>
@@ -423,31 +433,35 @@ export function InvoicePaper({
             )
           )}
           <div className="original-symbols">
-            <span>Variabilný symbol:</span>
+            <span>{t('Variabilný symbol') + ':'}</span>
             {field('variableSymbol', 'Variabilný symbol', true)}
             {invoice.constantSymbol && (
               <>
-                <span>KS:</span>
+                <span>{t('KS:')}</span>
                 {field('constantSymbol', 'Konštantný symbol', true)}
               </>
             )}
             {invoice.specificSymbol && (
               <>
-                <span>ŠS:</span>
+                <span>{t('ŠS:')}</span>
                 {field('specificSymbol', 'Špecifický symbol', true)}
               </>
             )}
           </div>
-          {invoice.orderNumber && <div>Objednávka: {field('orderNumber', 'Objednávka')}</div>}
+          {invoice.orderNumber && (
+            <div>
+              {t('Objednávka')}: {field('orderNumber', 'Objednávka')}
+            </div>
+          )}
         </div>
         <table className="original-items">
           <thead>
             <tr>
-              <th>POLOŽKA</th>
-              <th>POČET</th>
-              <th>JEDNOTKA</th>
-              <th>CENA / MJ</th>
-              <th>{invoice.supplier.vatPayer ? 'SPOLU S DPH' : 'SPOLU'}</th>
+              <th>{t('POLOŽKA')}</th>
+              <th>{t('POČET')}</th>
+              <th>{t('JEDNOTKA')}</th>
+              <th>{t('CENA / MJ')}</th>
+              <th>{t(invoice.supplier.vatPayer ? 'SPOLU S DPH' : 'SPOLU')}</th>
             </tr>
           </thead>
           <tbody>
@@ -512,7 +526,9 @@ export function InvoicePaper({
                       </div>
                     )}
                     {Number(item.discount) > 0 && (
-                      <small className="item-discount">Zľava {item.discount} %</small>
+                      <small className="item-discount">
+                        {t('Zľava')} {item.discount} %
+                      </small>
                     )}
                   </td>
                   <td>
@@ -526,7 +542,7 @@ export function InvoicePaper({
                   <td>
                     <Inline
                       label="Jednotka"
-                      value={item.unit}
+                      value={edit ? item.unit : t(item.unit)}
                       onChange={edit ? (v) => change('unit', v) : undefined}
                     />
                   </td>
@@ -588,23 +604,25 @@ export function InvoicePaper({
             {invoice.supplier.vatPayer && (
               <>
                 <p>
-                  <span>Základ dane</span>
+                  <span>{t('Základ dane')}</span>
                   <b className="numeric">{money(sum.net, invoice.currency)}</b>
                 </p>
                 {sum.taxRates.map((r) => (
                   <p key={r.rate}>
-                    <span>DPH {r.rate} %</span>
+                    <span>
+                      {t('DPH')} {r.rate} %
+                    </span>
                     <b className="numeric">{money(r.vat, invoice.currency)}</b>
                   </p>
                 ))}
               </>
             )}
             <p>
-              <span>Celková suma</span>
+              <span>{t('Celková suma')}</span>
               <b className="numeric">{money(sum.total, invoice.currency)}</b>
             </p>
             <p>
-              <span>Uhradené</span>
+              <span>{t('Uhradené')}</span>
               <span>
                 {edit ? field('paid', 'Uhradené', true) : money(invoice.paid, invoice.currency)}{' '}
                 {edit && invoice.currency}
@@ -619,31 +637,31 @@ export function InvoicePaper({
                   </strong>
                 </div>
                 <div>
-                  <small>Variabilný symbol</small>
+                  <small>{t('Variabilný symbol')}</small>
                   <strong className="numeric">{invoice.variableSymbol || '—'}</strong>
                 </div>
                 <div>
-                  <small>Dátum splatnosti</small>
+                  <small>{t('Dátum splatnosti')}</small>
                   <strong className="numeric">{displayDate(invoice.dueDate)}</strong>
                 </div>
                 <div>
-                  <small>Suma na úhradu</small>
+                  <small>{t('Suma na úhradu')}</small>
                   <strong className="numeric">{money(sum.remaining, invoice.currency)}</strong>
                 </div>
               </div>
             ) : (
               <p className="original-remaining">
-                <span>Suma na úhradu</span>
+                <span>{t('Suma na úhradu')}</span>
                 <b className="numeric">{money(sum.remaining, invoice.currency)}</b>
               </p>
             )}
             {Number(sum.overpaid) > 0 && (
               <p>
-                <span>Preplatok</span>
+                <span>{t('Preplatok')}</span>
                 <b className="numeric">{money(sum.overpaid, invoice.currency)}</b>
               </p>
             )}
-            <small>Podpis a pečiatka</small>
+            <small>{t('Podpis a pečiatka')}</small>
             {invoice.signature && (
               <img className="signature" src={invoice.signature} alt="Podpis a pečiatka" />
             )}
@@ -652,13 +670,13 @@ export function InvoicePaper({
         {!mono && (
           <div className="original-payment-band">
             {[
-              ['IBAN', invoice.account?.iban.replace(/(.{4})/g, '$1 ') ?? invoice.paymentMethod],
+              ['IBAN', invoice.account?.iban.replace(/(.{4})/g, '$1 ') ?? t(invoice.paymentMethod)],
               ['Variabilný symbol', invoice.variableSymbol],
               ['Splatnosť', displayDate(invoice.dueDate)],
               ['Na úhradu', money(sum.remaining, invoice.currency)],
             ].map(([label, value]) => (
               <div key={label}>
-                <small>{label}</small>
+                <small>{t(label)}</small>
                 <strong className="numeric">{value}</strong>
               </div>
             ))}
@@ -669,10 +687,10 @@ export function InvoicePaper({
           <div className="footer-columns">
             <span className="footer-issuer">
               {manolo ? (
-                manoloBay.contacts[0]
+                t('Vystavil') + ': Dominika Vašek'
               ) : edit || invoice.issuedBy ? (
                 <>
-                  <span>Vystavil:</span>
+                  <span>{t('Vystavil') + ':'}</span>
                   <span className="footer-issued-by">
                     {edit && (
                       <span className="footer-field-size" aria-hidden="true">

@@ -1,0 +1,62 @@
+import Foundation
+
+public enum InvoiceLanguage: String, Codable, CaseIterable {
+    case sk, en
+
+    public func text(_ value: String) -> String {
+        self == .en ? Self.english[value, default: value] : value
+    }
+
+    private static let english: [String: String] = [
+        "FAKTÚRA": "INVOICE",
+        "Faktúra": "Invoice",
+        "Číslo faktúry": "Invoice number",
+        "DODÁVATEĽ": "SUPPLIER",
+        "ODBERATEĽ": "CUSTOMER",
+        "IČO": "Company ID",
+        "DIČ": "Tax ID",
+        "IČ DPH": "VAT ID",
+        "Dátum vystavenia": "Issue date",
+        "Dátum splatnosti": "Due date",
+        "Dátum dodania": "Delivery date",
+        "Forma úhrady": "Payment method",
+        "Objednávka": "Order number",
+        "Variabilný symbol": "Payment reference",
+        "Konštantný symbol": "Constant symbol",
+        "Špecifický symbol": "Specific symbol",
+        "KS:": "Constant symbol:",
+        "ŠS:": "Specific symbol:",
+        "POLOŽKA": "ITEM",
+        "MNOŽSTVO": "QUANTITY",
+        "POČET": "QTY",
+        "JEDNOTKA": "UNIT",
+        "CENA / MJ": "UNIT PRICE",
+        "SPOLU S DPH": "TOTAL INCL. VAT",
+        "SPOLU": "TOTAL",
+        "Zľava": "Discount",
+        "DPH": "VAT",
+        "Základ dane": "Subtotal excl. VAT",
+        "Celková suma": "Total amount",
+        "Uhradené": "Paid",
+        "Suma na úhradu": "Amount due",
+        "Preplatok": "Overpayment",
+        "Poznámka": "Note",
+        "Podpis a pečiatka": "Signature and stamp",
+        "Vystavil": "Issued by",
+        "Splatnosť": "Due date",
+        "Na úhradu": "Amount due",
+        "Banka": "Bank",
+        "Bankový prevod": "Bank transfer",
+        "Hotovosť": "Cash",
+        "Karta": "Card",
+        "Platobná karta": "Card",
+        "Dobierka": "Cash on delivery",
+        "ks": "pcs",
+        "hod": "hrs",
+        "hod.": "hrs",
+        "deň": "day",
+        "dni": "days",
+        "mesiac": "month",
+        "Nie sme platiteľmi DPH.": "We are not VAT registered.",
+    ]
+}

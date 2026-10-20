@@ -14,12 +14,13 @@ enum ManoloPaymentColumns {
 
     static func make(_ invoice: Invoice, width: CGFloat, scale: CGFloat = 1,
                      monospaced: Bool = false, labelSize: CGFloat = 10,
-                     valueSize: CGFloat = 13) -> [Column] {
+                     valueSize: CGFloat = 13, localized: Bool = false) -> [Column] {
+        let t = (localized ? invoice.documentLanguage : .sk).text
         let values: [(String, String, CGFloat)] = [
             ("IBAN", invoice.account.map { Format.iban($0.iban) } ?? "—", valueSize),
-            ("Variabilný symbol", invoice.variableSymbol.isEmpty ? "—" : invoice.variableSymbol, valueSize),
-            ("Dátum splatnosti", Format.date(invoice.dueDate), valueSize),
-            ("Suma na úhradu", Format.money(invoice.remaining, currency: invoice.currency), 17)
+            (t("Variabilný symbol"), invoice.variableSymbol.isEmpty ? "—" : invoice.variableSymbol, valueSize),
+            (t("Dátum splatnosti"), Format.date(invoice.dueDate), valueSize),
+            (t("Suma na úhradu"), Format.money(invoice.remaining, currency: invoice.currency), 17)
         ]
         var columns = values.map { title, value, size in
             Column(title: title, value: value, valueSize: size * scale, width: ceil(max(

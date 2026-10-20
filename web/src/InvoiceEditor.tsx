@@ -196,6 +196,16 @@ export function InvoiceEditor({
               </option>
             ))}
           </BrandSelect>
+          <BrandSelect
+            className="invoice-language-select"
+            aria-label="Jazyk faktúry"
+            data-tooltip="Jazyk faktúry"
+            value={invoice.language ?? 'sk'}
+            onValueChange={(value) => update({ language: value as 'sk' | 'en' })}
+          >
+            <option value="sk">SK</option>
+            <option value="en">EN</option>
+          </BrandSelect>
           <button
             data-tooltip={paid ? 'Zmeniť na: Čaká na úhradu' : 'Pridať úhradu'}
             aria-label={paid ? 'Zmeniť na: Čaká na úhradu' : 'Pridať úhradu'}
