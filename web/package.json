@@ -8,6 +8,7 @@
     "types": "wrangler types",
     "check": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
+    "test:pdf": "npm run build && tsx scripts/verify-invoice-pdf.ts",
     "dev": "npm run build && wrangler dev",
     "preview": "npm run build && tsx scripts/preview.ts",
     "deploy": "npm run capture:product && npm run build && wrangler deploy",

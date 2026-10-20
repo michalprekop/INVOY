@@ -25,9 +25,10 @@ enum InvoyBrand {
 struct BrandWordmark: View {
     var height: CGFloat = 30
     var body: some View {
-        Image(nsImage: InvoyBrand.image("invoy-wordmark"))
+        let image = InvoyBrand.image("invoy-wordmark")
+        Image(nsImage: image)
             .resizable().aspectRatio(contentMode: .fit)
-            .frame(width: height * 2.91246, height: height)
+            .frame(width: height * image.size.width / max(1, image.size.height), height: height)
             .accessibilityLabel("INVOY.")
     }
 }

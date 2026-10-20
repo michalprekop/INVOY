@@ -53,7 +53,7 @@ Pôvodné lokálne súbory zostávajú v pôvodnom priečinku a otvorenie cloudo
 - Správa odberateľov, dodávateľa, loga, podpisu a bankových účtov vrátane predvoleného účtu, ktorý má zaoblené žlté označenie široké podľa obsahu. Logo aj podpis podporujú PNG alebo JPEG do 0,5 MB (500 000 bajtov) pre každý obrázok na webe aj Macu.
 - Celý riadok odberateľa sa pri prejdení myšou podfarbí a kliknutím otvorí úpravu. Odstránenie má samostatné tlačidlo a potvrdenie. Rovnaké ovládanie je na webe aj Macu.
 - Položky faktúry nemajú samostatnú trojbodku. Pravé kliknutie na riadok otvorí voľby položky vrátane zľavy a odstránenia; na webe funguje aj Shift+F10 na označenom riadku.
-- A4 PDF s viacstranovými položkami, diakritikou, logom a podpisom. Papier v editore používa rovnomerné zväčšenie pevného rozloženia A4, takže zmena šírky okna nemení jeho proporcie.
+- A4 PDF s viacstranovými položkami, diakritikou, logom a podpisom. Krátky webový export použije mierne menšie medzery, ak sa tým celá faktúra zmestí na jednu A4; veľkosť písma sa nemení. Podpisy a logá zachovávajú pomer strán. Papier v editore používa rovnomerné zväčšenie pevného rozloženia A4, takže zmena šírky okna nemení jeho proporcie.
 - Šablóny faktúr: pôvodný vzhľad **Boring default 01** a čiernobiela **Mono 01** s vektorovým logom Uncut Corners cez celú šírku gridu, malým nápisom FAKTÚRA vpravo pri čísle, hrubými plnými a tenkými čiernymi prerušovanými čiarami a písmom SF Mono vo všetkých textoch. Obe zachovávajú fakturačné údaje, podpis a platobný QR kód. Mono 01 používa v hlavičke dodané logo zo zdrojov aplikácie; uložené logá faktúr sa nemenia a Boring default 01 ich naďalej zobrazuje.
 - **Manolo & Bay** zachováva rozloženie Mono 01 na bielom papieri, dopĺňa dodané SVG logo nad jemným znakom v hlavičke, svetlobéžové zvýraznenie `#F2EEEA` a pätičku „Vystavil: Dominika Vašek“, „manolobay.com“, „dominika@manolobay.com“. Platobný blok rozdeľuje voľné miesto rovnomerne medzi obsah štyroch stĺpcov. V editore na Macu aj webe má väčšie popisky a hodnoty; písmo exportovaného PDF zostáva nezmenené. Pätička zostáva pri spodnom okraji papiera; viacstranové PDF ju opakuje na každej strane. Je dostupná na webe aj Macu vrátane PDF. Cloudový katalóg ju obsahuje samostatne; správca ju prideľuje účtom v Administrácii. Existujúce faktúry ani predvolená šablóna sa automaticky nemenia.
 - Globálny výber je v **Nastavenia → Vzhľad → Šablóna faktúry**. Platí pre nové aj existujúce faktúry s voľbou **Podľa globálnych nastavení**. Ikona šablóny v hornej lište faktúry alebo **Možnosti faktúry → Šablóna faktúry** umožňuje pevne zvoliť vzhľad iba pre danú faktúru. Zmena sa ukladá automaticky; duplikovanie zachová individuálnu voľbu. Staršie dáta a zálohy používajú pôvodný vzhľad, kým šablónu nezmeníte. Farba zvýraznení sa používa v Boring default 01.
@@ -90,6 +90,8 @@ bash scripts/test-native.sh
 env DEVELOPER_DIR=/Library/Developer/CommandLineTools bash scripts/build-app.sh
 .build/release/INVOY --verify output/pdf
 ```
+
+Vo `web/` príkaz `npm run test:pdf` overuje export v skutočnom prehliadači na izolovaných ukážkových dátach: krátke aj dlhé faktúry vo všetkých šablónach a jazykoch, jednu stranu pri krátkom doklade, proporcie podpisu a úplný vektor loga.
 
 Testy pokrývajú desatinné výpočty, DPH, čiastočné úhrady, číslovanie, validáciu IBAN-u, údaje zachované vo faktúre a zálohy. Príkaz `--verify` overí PDF predlohy, iba jeden účet, viacstranový export a uloženie dát. Na izolované UI testy možno nastaviť `INVOY_DATA_DIR`.
 

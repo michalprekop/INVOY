@@ -883,7 +883,7 @@
 }
 .footer-brand img {
   display: block;
-  width: 52.424px;
+  width: auto;
   height: 18px;
   object-fit: contain;
 }
@@ -1279,4 +1279,33 @@
 .native-invoice-table th:nth-child(4),
 .native-invoice-table td:nth-child(4) {
   text-align: right;
+}
+
+/* Export may use tighter spacing to keep a short invoice on one A4 page. */
+.pdf-export-host .pdf-compact .original-wordmark {
+  margin-bottom: 28px;
+}
+.pdf-export-host .pdf-compact .original-title {
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+}
+.pdf-export-host .pdf-compact .original-dates {
+  padding-block: 12px;
+}
+.pdf-export-host .pdf-compact .original-bank {
+  padding-bottom: 16px;
+}
+.pdf-export-host .pdf-compact .original-closing {
+  padding-top: 16px;
+  gap: 12px;
+}
+.pdf-export-host .pdf-compact .original-totals {
+  gap: 8px;
+}
+.pdf-export-host .pdf-compact .original-totals > small {
+  margin-top: 4px;
+}
+.pdf-export-host .pdf-compact .signature {
+  margin-top: 0;
+  float: none;
 }

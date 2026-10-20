@@ -26,9 +26,10 @@ enum InvoiceFooterLayout {
 
         let brandWidth: CGFloat = 42
         let logoHeight: CGFloat = 12
-        let logoWidth = logoHeight * 2.91246
+        let logo = InvoyBrand.image("invoy-wordmark")
+        let logoWidth = logoHeight * logo.size.width / max(1, logo.size.height)
         let brandX = x + width - brandWidth
-        InvoyBrand.image("invoy-wordmark").draw(
+        logo.draw(
             in: NSRect(x: brandX + (brandWidth - logoWidth) / 2, y: top, width: logoWidth, height: logoHeight),
             from: .zero, operation: .sourceOver, fraction: 1, respectFlipped: true, hints: nil)
         text("www.invoy.xyz", x: brandX, top: top + logoHeight + 3,

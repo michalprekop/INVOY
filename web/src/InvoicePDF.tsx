@@ -133,6 +133,27 @@ function paginate(source: HTMLElement, host: HTMLElement): HTMLElement[] {
     if (!fits()) splitTall(node);
   }
   newPage();
+  // Remove surplus spacing only when that makes the complete invoice fit one A4.
+  // Longer invoices keep their normal layout and paginate without shrinking text.
+  const contentHeight = () => {
+    const origin = source.getBoundingClientRect().top + top;
+    return Math.max(
+      0,
+      ...Array.from(source.children)
+        .filter((node) => !node.matches('style, .manolo-background, .original-footer'))
+        .map(
+          (node) =>
+            node.getBoundingClientRect().bottom +
+            parseFloat(getComputedStyle(node).marginBottom) -
+            origin,
+        ),
+    );
+  };
+  if (contentHeight() > capacity + 0.5) {
+    source.classList.add('pdf-compact');
+    if (contentHeight() <= capacity + 0.5) pages[0].classList.add('pdf-compact');
+    else source.classList.remove('pdf-compact');
+  }
   for (const original of Array.from(source.children) as HTMLElement[]) {
     if (original.matches('style, .manolo-background, .original-footer')) continue;
     if (original instanceof HTMLTableElement) {
@@ -190,12 +211,57 @@ async function withInvoicePages<T>(
     await waitForQR(paper, Boolean(paymentPayload(invoice)));
     await document.fonts.ready;
     await Promise.all(Array.from(paper.querySelectorAll('img')).map((image) => image.decode()));
+    // html2canvas does not implement object-fit. Bake each contained image into
+    // its exact display box, preserving its original proportions and transparency.
+    await prepareInvoiceImages(paper);
     const pages = paginate(paper, host);
     return await render(pages);
   } finally {
     root.unmount();
     host.remove();
   }
+}
+
+async function prepareInvoiceImages(paper: HTMLElement) {
+  await Promise.all(
+    Array.from(paper.querySelectorAll('img')).map(async (img) => {
+      const style = getComputedStyle(img);
+      if (style.objectFit !== 'contain' && !/\.svg(?:[?#]|$)/i.test(img.src)) return;
+      const width = parseFloat(style.width),
+        height = parseFloat(style.height);
+      if (!width || !height || !img.naturalWidth || !img.naturalHeight) return;
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.ceil(width * 4);
+      canvas.height = Math.ceil(height * 4);
+      const context = canvas.getContext('2d')!;
+      const ratio = Math.min(canvas.width / img.naturalWidth, canvas.height / img.naturalHeight);
+      const w = img.naturalWidth * ratio,
+        h = img.naturalHeight * ratio;
+      const positions = style.objectPosition.split(' ');
+      const fraction = (value: string) =>
+        value.endsWith('%')
+          ? parseFloat(value) / 100
+          : value === 'left' || value === 'top'
+            ? 0
+            : value === 'right' || value === 'bottom'
+              ? 1
+              : 0.5;
+      context.drawImage(
+        img,
+        (canvas.width - w) * fraction(positions[0]),
+        (canvas.height - h) * fraction(positions[1] ?? '50%'),
+        w,
+        h,
+      );
+      img.style.width = `${width}px`;
+      img.style.height = `${height}px`;
+      img.style.objectFit = 'fill';
+      img.src = canvas.toDataURL('image/png');
+      await img.decode();
+      canvas.width = 0;
+      canvas.height = 0;
+    }),
+  );
 }
 
 function capturePage(page: HTMLElement, scale: number) {
