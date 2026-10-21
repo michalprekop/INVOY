@@ -654,9 +654,9 @@
   table-layout: fixed;
   font-size: 13px;
 }
-/* Body cells match the payment-detail typeface, one point smaller. */
+/* Main item values match payment details; secondary descriptions stay smaller. */
 .original-items tbody {
-  font-size: calc(12px - 1pt);
+  font-size: 12px;
   font-weight: 400;
 }
 .original-paper .original-items tbody td,
@@ -664,6 +664,9 @@
   font-family: inherit;
   font-size: inherit;
   font-weight: 400;
+}
+.original-items tbody tr td :is(.item-detail, .item-discount) {
+  font-size: calc(12px - 1pt);
 }
 .mono .original-items {
   border-top: 10px solid #000;

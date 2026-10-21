@@ -185,7 +185,8 @@ enum MonoInvoicePDF {
                      (t("Forma úhrady"), t(invoice.paymentMethod)), (t("Objednávka"), invoice.orderNumber)]
         y = max(detailRows(bank, x: left, top: y), detailRows(dates, x: 310, top: y)) + (manolo && compact ? 9 : 17)
         ensure(75); tableHeader()
-        let itemFontSize: CGFloat = 7 // Payment details use 8 pt.
+        let itemFontSize: CGFloat = 8
+        let itemDetailFontSize: CGFloat = 7
         for item in invoice.items {
             let description = [item.name, item.detail, item.discount > 0 ? "\(t("Zľava")) \(Format.number(item.discount)) %" : "",
                                invoice.supplier.vatPayer ? "\(t("DPH")) \(Format.number(item.vatRate)) %" : ""].filter { !$0.isEmpty }.joined(separator: "\n")
@@ -204,6 +205,12 @@ enum MonoInvoicePDF {
                 let fragmentRange = source.range(of: chunk, range: NSRange(location: sourceOffset, length: source.length - sourceOffset))
                 let styled = NSMutableAttributedString(attributedString: attributed(chunk, size: itemFontSize))
                 if fragmentRange.location != NSNotFound {
+                    let secondaryRange = NSRange(location: (item.name as NSString).length, length: source.length - (item.name as NSString).length)
+                    let secondary = NSIntersectionRange(fragmentRange, secondaryRange)
+                    if secondary.length > 0 {
+                        styled.addAttribute(.font, value: InvoiceTypography.font(size: itemDetailFontSize, monospaced: !manolo),
+                                            range: NSRange(location: secondary.location - fragmentRange.location, length: secondary.length))
+                    }
                     let detail = NSIntersectionRange(fragmentRange, detailRange)
                     if detail.length > 0 {
                         styled.addAttribute(.foregroundColor, value: muted,

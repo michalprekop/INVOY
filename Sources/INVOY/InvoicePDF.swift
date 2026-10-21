@@ -144,7 +144,8 @@ enum InvoicePDF {
         y += text(symbols, left, y + 3, width, size: 8.5, weight: .medium) + 17
         if y > 675 { continued() }
         tableHeader()
-        let itemFontSize: CGFloat = 7.5 // Payment details use 8.5 pt.
+        let itemFontSize: CGFloat = 8.5
+        let itemDetailFontSize: CGFloat = 7.5
         for item in invoice.items {
             let extra = [item.detail, item.discount > 0 ? "\(t("Zľava")) \(Format.number(item.discount)) %" : "", invoice.supplier.vatPayer ? "\(t("DPH")) \(Format.number(item.vatRate)) %" : ""].filter { !$0.isEmpty }.joined(separator: "\n")
             // Split unusually long descriptions into page-sized paragraphs without dropping text.
@@ -158,10 +159,28 @@ enum InvoicePDF {
             }
             if !chunk.isEmpty { chunks.append(chunk) }
             if chunks.isEmpty { chunks = [" "] }
+            let normalized = full.components(separatedBy: .whitespacesAndNewlines).filter { !$0.isEmpty }.joined(separator: " ") as NSString
+            let nameLength = (item.name.components(separatedBy: .whitespacesAndNewlines).filter { !$0.isEmpty }.joined(separator: " ") as NSString).length
+            var sourceOffset = 0
             for (part, description) in chunks.enumerated() {
                 let rowHeight = max(35, height(description, width: 239, size: itemFontSize) + 18)
                 if y + rowHeight > 754 { continued(); tableHeader() }
-                _ = text(description, left + 9, y + 9, 239, size: itemFontSize)
+                let paragraph = NSMutableParagraphStyle()
+                paragraph.lineSpacing = 2
+                paragraph.lineBreakMode = .byWordWrapping
+                let styled = NSMutableAttributedString(attributedString: InvoiceTypography.attributed(description, size: itemFontSize,
+                    attributes: [.foregroundColor: ink, .paragraphStyle: paragraph]))
+                let fragment = normalized.range(of: description, range: NSRange(location: sourceOffset, length: normalized.length - sourceOffset))
+                if fragment.location != NSNotFound {
+                    let secondary = NSIntersectionRange(fragment, NSRange(location: nameLength, length: normalized.length - nameLength))
+                    if secondary.length > 0 {
+                        styled.addAttribute(.font, value: InvoiceTypography.font(size: itemDetailFontSize),
+                            range: NSRange(location: secondary.location - fragment.location, length: secondary.length))
+                    }
+                    sourceOffset = NSMaxRange(fragment)
+                }
+                styled.draw(with: NSRect(x: left + 9, y: y + 9, width: 239, height: height(description, width: 239, size: itemFontSize) + 2),
+                            options: [.usesLineFragmentOrigin, .usesFontLeading])
                 if part == 0 {
                     _ = text("\(Format.number(item.quantity)) \(t(item.unit))", 293, y + 9, 65, size: itemFontSize, alignment: .right)
                     _ = text(Format.money(item.unitPrice, currency: invoice.currency), 365, y + 9, 79, size: itemFontSize, alignment: .right)
