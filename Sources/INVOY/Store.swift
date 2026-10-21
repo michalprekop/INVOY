@@ -176,6 +176,14 @@ final class Store: ObservableObject {
         }
     }
 
+    func invoiceTemplateName(_ invoice: Invoice) -> String {
+        if let style = invoice.cloudStyle {
+            // Names can change in the catalogue; the saved design remains historical.
+            return cloudTemplates?.first { $0.id == style.id }?.name ?? style.name
+        }
+        return invoice.resolvedTemplate(default: database.settings.defaultInvoiceTemplate).title
+    }
+
     func duplicate(_ invoice: Invoice) -> Invoice {
         var copy = invoice
         let fresh = newInvoice()

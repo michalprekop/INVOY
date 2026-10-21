@@ -279,7 +279,7 @@ struct InvoiceTemplatePicker: View {
     @EnvironmentObject private var store: Store
     @ObservedObject var draft: InvoiceDraft
     var body: some View {
-        BrandDropdown(title: "Šablóna faktúry", value: draft.invoice.cloudStyle?.name ?? draft.invoice.resolvedTemplate(default: store.database.settings.defaultInvoiceTemplate).title, symbol: "paintpalette", items: options)
+        BrandDropdown(title: "Šablóna faktúry", value: store.invoiceTemplateName(draft.invoice), symbol: "paintpalette", items: options)
     }
     private var options: [BrandDropdownItem] {
         if let templates = store.cloudTemplates {

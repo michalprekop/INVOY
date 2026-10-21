@@ -71,6 +71,50 @@ final class InvoiceWorkflowTests: XCTestCase {
         XCTAssertEqual(restored.database.invoices.first { $0.id == duplicate.id }?.number, fresh.number)
     }
 
+    @MainActor func testDuplicatingRenamedCloudTemplateUsesCatalogueNameWithoutChangingSavedDesign() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = Store(dataDirectory: directory, initialDatabase: Store.seed())
+        var source = try XCTUnwrap(store.database.invoices.first)
+        let historical = try JSONDecoder().decode(CloudInvoiceStyle.self, from: Data("""
+            {"id":"custom-mono","name":"Mono 01","config":{"layout":"mono","accent":"#000000","wordmark":"Original design","logo":"","footer":"Original footer"}}
+            """.utf8))
+        source.cloudStyle = historical
+        source.templateOverride = .mono01
+        var renamed = historical
+        renamed.name = "Uncut Corners"
+        renamed.config.footer = "New catalogue footer"
+        var other = renamed
+        other.id = "other-mono"
+        other.name = "Another mono template"
+        store.cloudTemplates = [other, renamed]
+        XCTAssertTrue(store.save(source))
+        source = try XCTUnwrap(store.database.invoices.first { $0.id == source.id })
+        let before = try Data(contentsOf: store.url)
+        let copy = store.duplicate(source)
+        XCTAssertEqual(store.invoiceTemplateName(source), "Uncut Corners")
+        XCTAssertEqual(store.invoiceTemplateName(copy), "Uncut Corners")
+        XCTAssertEqual(copy.cloudStyle, historical)
+        XCTAssertEqual(copy.templateOverride, source.templateOverride)
+        XCTAssertNotEqual(copy.id, source.id)
+        XCTAssertEqual(try Data(contentsOf: store.url), before)
+        XCTAssertTrue(store.save(copy))
+        let restored = Store(dataDirectory: directory)
+        restored.cloudTemplates = [renamed]
+        let saved = try XCTUnwrap(restored.database.invoices.first { $0.id == copy.id })
+        XCTAssertEqual(restored.invoiceTemplateName(saved), "Uncut Corners")
+        XCTAssertEqual(saved.cloudStyle, historical)
+        XCTAssertEqual(restored.database.invoices.first { $0.id == source.id }, source)
+        // Another template with the same layout must never substitute its name.
+        restored.cloudTemplates = [other]
+        XCTAssertEqual(restored.invoiceTemplateName(saved), "Mono 01")
+        restored.cloudTemplates = nil
+        XCTAssertEqual(restored.invoiceTemplateName(saved), "Mono 01")
+        var local = saved
+        local.cloudStyle = nil
+        XCTAssertEqual(restored.invoiceTemplateName(local), "Mono 01")
+    }
+
     @MainActor func testSavingAnEditUpdatesExistingInvoice() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }
